@@ -6,36 +6,21 @@ import fs from "fs";
 
 import getShopBotUserOrNullByChatId from "../middlewares/getShopBotUserOrNullByChatId.js";
 import {
+    annaDescribtion,
     channelChatId,
     channelLink,
     channelName,
     creatorNick,
     cryptoBotAPIKey,
     elevenLabsApiKey,
-    femaleDescribtion,
-    maleDescription,
-    shopBotAdminCommands,
-    shopReceiveGoodLink,
-    shopRulesLink,
-    techSuppportBotLink,
-    workBotLink,
+    leraDescribtion,
+    andreyDescription,
+    shopBotAdminCommands
 } from "../config.js";
 import shopBot from "../utils/shopBot.js";
 import {
     messageForAllShopBotUsers,
-    newShopBotCategoryNameListener,
-    newShopBotCategoryPhotoListener,
-    newShopBotCategorySubscriptionListener,
     shopBotCategoryToEditListener,
-    shopBotCategoryToEditNewNameListener,
-    newShopBotItemCategoryListener,
-    newShopBotItemCost,
-    newShopBotItemCostListener,
-    newShopBotItemDescription,
-    newShopBotItemDescriptionListener,
-    newShopBotItemName,
-    newShopBotItemNameListener,
-    shopCategoryDeleteListener,
     userToBlockChatIdListener,
     addVoicesNumberToBuyNumberListener,
     addVoicesNumberToBuyCostListener,
@@ -578,9 +563,9 @@ export default async function handleShopBotMessage(db) {
                 }
 
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucI5nDma6ynZVH5locgWDsWhuGX9CpwACj2cAArmjaUgrEmxhH2HAbDYE");
-                return await shopBot.sendMessage(chatId, '👋 <b>Вы</b> вернулись в главное меню.' + '\n' +
-                    'Выберите раздел который вам нужен' + '\n \n' +
-                    `<b>Создатель бота:</b> @${creatorNick}`, {
+                return await shopBot.sendMessage(chatId, '👋 <b>О славный воин, ты вернулся в главное меню!</b>' + '\n' +
+                    'Выбери путь, что приведет тебя к нужному разделу 🏛️⚡️' + '\n \n' +
+                    `<b>Создатель бота:</b> @${creatorNick} 🔱`, {
                         parse_mode: "HTML",
                         reply_markup: {
                             keyboard: shopBotMainMenuKeyboard,
@@ -644,16 +629,16 @@ export default async function handleShopBotMessage(db) {
                 } = await getShopBotUsersCountFromDb(db);
 
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIZnDmYekukDQq1QCkH1_zvJ_-FPvQACSVwAAvuvaEgodF_trkXaUjYE");
-                return await shopBot.sendMessage(chatId, '👨‍💼 <b>Ваш личный кабинет</b>' + '\n \n' +
-                    `🚀 Telegram ID: <code>${chatId}</code>` + '\n \n' +
-                    `<b>Администратор:</b> @${creatorNick}` + '\n \n' +
-                    '💡<b>Есть идеи как улучшить бота?</b>' + '\n' +
-                    '💡<b>Напиши свою идею администратору</b>' + '\n \n' +
-                    `👥 Пользователей в боте: ${usersNum}` + '\n \n' +
-                    `⏳ За все время Вы записали: <b>${foundUserOrNull.totalVoicesRecorded}</b> голосовых` + '\n \n' +
-                    `🥳 Вам доступно <b>${foundUserOrNull.voicesAvaliable}</b> голосовых` + '\n' +
-                    '🤬 Не понравилось качество голосового? 🤗 <b>Заменим</b>!' + '\n' +
-                    'Напиши администратору', {
+                return await shopBot.sendMessage(chatId, '👨‍💼 <b>Ваш профиль</b>' + '\n \n' +
+                    `🚀 Ваш уникальный Telegram ID: <code>${chatId}</code>` + '\n \n' +
+                    `<b>Связь с администратором:</b> @${creatorNick}` + '\n \n' +
+                    '💡<b>Есть предложения по улучшению бота?</b>' + '\n' +
+                    '💡<b>Поделитесь своими идеями с администратором!</b>' + '\n \n' +
+                    `👥 Общее количество пользователей: ${usersNum}` + '\n \n' +
+                    `⏳ За все время вы записали: <b>${foundUserOrNull.totalVoicesRecorded}</b> голосовых сообщений` + '\n \n' +
+                    `🥳 У вас осталось <b>${foundUserOrNull.voicesAvaliable}</b> доступных голосовых сообщений` + '\n' +
+                    '🤬 Не устроило качество голосового сообщения? 🤗 <b>Мы его заменим!</b>' + '\n' +
+                    'Свяжитесь с администратором для замены.', {
                         parse_mode: "HTML",
                         reply_markup: {
                             keyboard: shopBotOwnCabinetMenu,
@@ -661,6 +646,7 @@ export default async function handleShopBotMessage(db) {
                         }
                     }
                 );
+
             }
 
             case "🤝 Реферальная система": {
@@ -669,15 +655,26 @@ export default async function handleShopBotMessage(db) {
                 console.log(refferalsCount);
 
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIRnDmX-bm0aaPcW6AZf_ETGxkbHbgAC4F0AAm01aEjrUPZyq9V63TYE");
-                return await shopBot.sendMessage(chatId, 'Пригласи друга и получи бонус! 🎁' + '\n \n' +
-                    'Твоя реферальная ссылка: Ваша новая реферальная ссылка:' + '\n' +
+                // return await shopBot.sendMessage(chatId, 'Пригласи друга и получи бонус! 🎁' + '\n \n' +
+                //     'Твоя реферальная ссылка: Ваша новая реферальная ссылка:' + '\n' +
+                //     `https://t.me/MegSoundBot?start=${chatId}` + '\n \n' +
+                //     `Ты уже пригласил ${refferalsCount.usersNum} человек` + '\n \n' +
+                //     'За каждых 5 приглашенных друзей ты будешь получать 3 голосовых 💰', {
+                //         parse_mode: "HTML",
+                //         disable_web_page_preview: true
+                //     }
+                // );
+
+                return await shopBot.sendMessage(chatId, 'Приглашай друзей и получай бонусы! 🎁' + '\n \n' +
+                    'Вот твоя персональная реферальная ссылка:' + '\n' +
                     `https://t.me/MegSoundBot?start=${chatId}` + '\n \n' +
-                    `Ты уже пригласил ${refferalsCount.usersNum} человек` + '\n \n' +
-                    'За каждых 5 приглашенных друзей ты будешь получать 2 голосовых 💰', {
+                    `Ты уже пригласил ${refferalsCount.usersNum} друзей!` + '\n \n' +
+                    'За каждые 5 приглашенных друзей получай 3 дополнительных голосовых сообщения 💰', {
                         parse_mode: "HTML",
                         disable_web_page_preview: true
                     }
                 );
+
             }
 
             case '🛍️ Покупка голосовых сообщений': {
@@ -698,8 +695,20 @@ export default async function handleShopBotMessage(db) {
                 numOfVoicesToBuyListener.set(chatId.toString(), 'true')
 
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucJRnDmcUCNlBRRPzhgWpgXb-MIrp-QACjFwAAqYEaEieWJzGdVvhHTYE");
-                return await shopBot.sendMessage(chatId, 'Выберите количество голосовых, которое хотите купить' + '\n' +
-                    '💸<b>Цены</b>💸' + '\n \n' +
+                // return await shopBot.sendMessage(chatId, 'Выберите количество голосовых, которое хотите купить' + '\n' +
+                //     '💸<b>Цены</b>💸' + '\n \n' +
+                //     voicesMessages, {
+                //         reply_markup: {
+                //             keyboard: voicesArr,
+                //             resize_keyboard: true
+                //         },
+                //         parse_mode: "HTML",
+                //         disable_web_page_preview: true
+                //     }
+                // );
+
+                return await shopBot.sendMessage(chatId, 'Выберите количество голосовых сообщений, которые хотите приобрести' + '\n' +
+                    '💸<b>Доступные цены</b>💸' + '\n \n' +
                     voicesMessages, {
                         reply_markup: {
                             keyboard: voicesArr,
@@ -756,7 +765,7 @@ export default async function handleShopBotMessage(db) {
                 return 0;
 
             const comment = text === 'Текст' ?
-                'Текст вводите со всеми знаками препинания, с правильной орфографией, цифры пишите буквами' :
+                'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
                 'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне'
 
             await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIhnDmY9ZMwmJZ7MVja6WLQRMheMsQACnmYAAtkCaEh506_l6mpDDDYE");
@@ -800,10 +809,11 @@ export default async function handleShopBotMessage(db) {
             }
 
             return await shopBot.sendPhoto(chatId, `./images/${text === 'Андрей' ? 'malePhoto': text === "Лера" ? 'Lera' : 'Anna'}.jpg`, {
-                caption: `${text}. ${age} лет` + '\n' +
-                    `${text === 'Андрей' ? maleDescription: femaleDescribtion}` + '\n \n' +
-                    `Отправьте ${messageType.toLowerCase()} для преобразования в голосовое сообщение.` + '\n' +
-                    'Или нажмите кнопку "↩️ Назад" для отмены конвертации',
+                caption: `<b>${text}</b>. ${age} лет` + '\n \n' +
+                    `${text === 'Андрей' ? andreyDescription: text === "Лера" ? leraDescribtion : annaDescribtion}` + '\n \n' +
+                    `Отправьте ${messageType.toLowerCase()}, который хочешь превратить в голосовое послание, и оно прозвучит, словно гимн, достойный царей! 🏛️` + '\n' +
+                    'Или нажми “↩️ <b>Назад</b>”, если твой выбор пока не определён. ⚔️',
+                    parse_mode: "HTML",
                 reply_markup: {
                     keyboard: [
                         [{

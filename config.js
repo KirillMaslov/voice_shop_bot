@@ -10,8 +10,9 @@ export const shopRulesLink = 'https://telegra.ph/PRAVILA-LAVKI-HARDA-08-18';
 export const shopReceiveGoodLink = 'https://telegra.ph/KAK-POLUCHIT-TOVAR-08-18';
 export const creatorNick = 'AID_ex';
 
-export const maleDescription = 'Обычный голос молодого парня.';
-export const femaleDescribtion = 'Очень приятный и милый голос.';
+export const andreyDescription = '⚡️ <b>Андрей, герой с мужественным голосом, который звучит как эхо Олимпа!</b> 🎙️🔥';
+export const leraDescribtion = '⚡️ <b>Лера, юная муза с голосом столь нежным, что вдохновляет богов Олимпа! </b>🎙️🌸';
+export const annaDescribtion = '⚡️ <b>Анна, нежная муза с голосом, что ласкает слух богов Олимпа!</b> 🎙️🌺';
 
 export const shopBotAdminCommands = 'Воспользуйся коммандами бота' + '\n \n' +
 '/sendAdvertisingMessage - Сделать рассылку пользователям' + '\n' +
