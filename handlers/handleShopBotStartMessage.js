@@ -32,7 +32,8 @@ export default async function handleShopBotStartMessage(db) {
 
                     if (foundRefferal) {
                         const refferalsCount = await getShopBotUserRefferalsCount(chatId.toString(), db);
-                        const newRefferalsNum = Number(refferalsCount) + 1;
+                        console.log(refferalsCount);
+                        const newRefferalsNum = Number(refferalsCount.usersNum) + 1;
 
                         if (newRefferalsNum % 5 === 0) {
                             await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundUserOrNull.voicesAvaliable) + 3, refferalChatId], function (err) {
@@ -49,7 +50,7 @@ export default async function handleShopBotStartMessage(db) {
                 }
             }
 
-            insertNewShopBotUserInDb(chatId.toString(), referral_code ? referral_code.toString() : '', db);
+            // insertNewShopBotUserInDb(chatId.toString(), referral_code ? referral_code.toString() : '', db);
         }
 
         if (foundUserOrNull && foundUserOrNull.isBlocked) {
