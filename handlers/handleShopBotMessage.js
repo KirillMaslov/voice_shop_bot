@@ -57,7 +57,7 @@ export default async function handleShopBotMessage(db) {
         const foundUserOrNull = await getShopBotUserOrNullByChatId(chatId.toString(), db);
         // checking access
         if (!foundUserOrNull) {
-            return 0;
+            return await shopBot.sendMessage(chatId, 'Вы не зарегистрированы в бота. Нажмите команду /start');
         }
 
 

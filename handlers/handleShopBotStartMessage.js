@@ -50,7 +50,7 @@ export default async function handleShopBotStartMessage(db) {
                 }
             }
 
-            // insertNewShopBotUserInDb(chatId.toString(), referral_code ? referral_code.toString() : '', db);
+            insertNewShopBotUserInDb(chatId.toString(), referral_code ? referral_code.toString() : '', db);
         }
 
         if (foundUserOrNull && foundUserOrNull.isBlocked) {
