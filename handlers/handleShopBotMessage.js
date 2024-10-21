@@ -2,7 +2,13 @@ import CryptoBotAPI from 'crypto-bot-api';
 import {
     ElevenLabsClient
 } from "elevenlabs";
-import fs from "fs";
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import tmp from 'tmp';
+import fs from 'fs';
+import * as mm from 'music-metadata';
+
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 import getShopBotUserOrNullByChatId from "../middlewares/getShopBotUserOrNullByChatId.js";
 import {
@@ -687,14 +693,14 @@ export default async function handleShopBotMessage(db) {
                 switch (foundUserOrNull.language) {
                     case 'en':
                         modelListener.set(chatId.toString(), "Text");
-                        // messageText = 'You have chosen the section with male voices. 🎙️💪' + '\n' +
-                        //     '<b>Select a model:</b>' + '\n \n' +
-                        //     '‼️<b>Remember.</b>' + '\n' +
-                        //     `enter text with correct spelling and punctuation. Write numbers in words to maintain the precision of the speech. Use stickers to convey the right mood and enhance the effect of your message! 😊🔥`;
+                        messageText = 'You have chosen the section with male voices. 🎙️💪' + '\n' +
+                            '<b>Select a model:</b>' + '\n \n' +
+                            '‼️<b>Remember.</b>' + '\n' +
+                            `enter text with correct spelling and punctuation. Write numbers in words to maintain the precision of the speech. Use stickers to convey the right mood and enhance the effect of your message! 😊🔥`;
 
-                        messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
-                            'You forgot something... I think you need to choose a model? ⚔️' + '\n\n' +
-                            'Do it on the panel below and get ready for your great deeds! 💪';
+                        // messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
+                        //     'You forgot something... I think you need to choose a model? ⚔️' + '\n\n' +
+                        //     'Do it on the panel below and get ready for your great deeds! 💪';
                         resultKeyboard = [
                             [{
                                 text: "Andrew",
@@ -705,13 +711,13 @@ export default async function handleShopBotMessage(db) {
                         break;
                     case "ru":
                         modelListener.set(chatId.toString(), "Текст");
-                        messageText = `💥 <b>Эй, герой!</b>💥` + '\n' +
-                        'Ты кое-что забыл… По-моему, нужно выбрать модель? ⚔️' + '\n\n' +
-                        'Сделай это на панели ниже и приступай к своим великим подвигам! 💪';
-                        // messageText = 'Вы выбрали раздел с мужскими голосами. 🎙️💪' + '\n' +
-                        //     '<b>Выберете модель:</b>' + '\n \n' +
-                        //     '‼️<b>Помните.</b>' + '\n' +
-                        //     `вводите текст с правильной орфографией и всеми знаками препинания. Цифры пишите прописью, чтобы сохранить точность звучания. Используйте стикеры, чтобы передать нужное настроение и усилить эффект вашего сообщения! 😊🔥`;
+                        // messageText = `💥 <b>Эй, герой!</b>💥` + '\n' +
+                        //     'Ты кое-что забыл… По-моему, нужно выбрать модель? ⚔️' + '\n\n' +
+                        //     'Сделай это на панели ниже и приступай к своим великим подвигам! 💪';
+                        messageText = 'Вы выбрали раздел с мужскими голосами. 🎙️💪' + '\n' +
+                            '<b>Выберете модель:</b>' + '\n \n' +
+                            '‼️<b>Помните.</b>' + '\n' +
+                            `вводите текст с правильной орфографией и всеми знаками препинания. Цифры пишите прописью, чтобы сохранить точность звучания. Используйте стикеры, чтобы передать нужное настроение и усилить эффект вашего сообщения! 😊🔥`;
                         resultKeyboard = [
                             [{
                                 text: "Андрей",
@@ -948,17 +954,17 @@ export default async function handleShopBotMessage(db) {
 
             switch (foundUserOrNull.language) {
                 case 'en': {
-                    messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
-                        'You forgot something... I think you need to choose a model? ⚔️' + '\n\n' +
-                        'Do it on the panel below and get ready for your great deeds! 💪';
-                    // const comment = text === 'Text' ?
-                    //     'Enter the text with correct spelling and all punctuation marks, and write numbers in words! 📜✍️' :
-                    //     'After selecting a model, record a voice message clearly, without background noise';
+                    // messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
+                    //     'You forgot something... I think you need to choose a model? ⚔️' + '\n\n' +
+                    //     'Do it on the panel below and get ready for your great deeds! 💪';
+                    const comment = text === 'Text' ?
+                        'Enter the text with correct spelling and all punctuation marks, and write numbers in words! 📜✍️' :
+                        'After selecting a model, record a voice message clearly, without background noise';
 
-                    // messageText = `You have chosen conversion using ${text === 'Text' ? 'text' : 'voice'}.` + '\n' +
-                    //     '<b>Select a model:</b>' + '\n\n' +
-                    //     '‼️<b>Remember</b>' + '\n' +
-                    //     comment;
+                    messageText = `You have chosen conversion using ${text === 'Text' ? 'text' : 'voice'}.` + '\n' +
+                        '<b>Select a model:</b>' + '\n\n' +
+                        '‼️<b>Remember</b>' + '\n' +
+                        comment;
 
                     resultKeyboard = [
                         [{
@@ -973,17 +979,18 @@ export default async function handleShopBotMessage(db) {
                 }
 
                 case 'ru': {
-                    messageText = `💥 <b>Эй, герой!</b>💥` + '\n' +
-                        'Ты кое-что забыл… По-моему, нужно выбрать модель? ⚔️' + '\n\n' +
-                        'Сделай это на панели ниже и приступай к своим великим подвигам! 💪';
+                    // messageText = `💥 <b>Эй, герой!</b>💥` + '\n' +
+                    //     'Ты кое-что забыл… По-моему, нужно выбрать модель? ⚔️' + '\n\n' +
+                    //     'Сделай это на панели ниже и приступай к своим великим подвигам! 💪';
 
-                    // const comment = text === 'Текст' ?
-                    // 'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
-                    // 'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне';
-                    // messageText = `Вы выбрали конвертацию с помощью ${text === 'Текст' ? 'текста': 'голоса'}.` + '\n' +
-                    //     '<b>Выберете модель:</b>' + '\n\n' +
-                    //     '‼️<b>Помните</b>' + '\n' +
-                    //     comment;
+                    const comment = text === 'Текст' ?
+                        'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
+                        'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне';
+
+                    messageText = `Вы выбрали конвертацию с помощью ${text === 'Текст' ? 'текста': 'голоса'}.` + '\n' +
+                        '<b>Выберете модель:</b>' + '\n\n' +
+                        '‼️<b>Помните</b>' + '\n' +
+                        comment;
 
 
                     resultKeyboard = [
@@ -1015,10 +1022,71 @@ export default async function handleShopBotMessage(db) {
 
         if (modelListener.has(chatId.toString())) {
             const messageType = modelListener.get(chatId.toString());
-            modelListener.delete(chatId.toString());
 
-            if (!["Лера", 'Анна', 'Андрей', "Lera", 'Ann', 'Andrew'].includes(text))
-                return 0;
+            if (!["Лера", 'Анна', 'Андрей', "Lera", 'Ann', 'Andrew'].includes(text)) {
+                switch (foundUserOrNull.language) {
+                    case 'en': {
+                        messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
+                            'You forgot something... I think you need to choose a model? ⚔️' + '\n\n' +
+                            'Do it on the panel below and get ready for your great deeds! 💪';
+                        // const comment = text === 'Text' ?
+                        //     'Enter the text with correct spelling and all punctuation marks, and write numbers in words! 📜✍️' :
+                        //     'After selecting a model, record a voice message clearly, without background noise';
+
+                        // messageText = `You have chosen conversion using ${text === 'Text' ? 'text' : 'voice'}.` + '\n' +
+                        //     '<b>Select a model:</b>' + '\n\n' +
+                        //     '‼️<b>Remember</b>' + '\n' +
+                        //     comment;
+
+                        resultKeyboard = [
+                            [{
+                                text: "Lera"
+                            }, {
+                                text: 'Ann'
+                            }, {
+                                text: '↩️ Back'
+                            }]
+                        ];
+                        break;
+                    }
+
+                    case 'ru': {
+                        messageText = `💥 <b>Эй, герой!</b>💥` + '\n' +
+                            'Ты кое-что забыл… По-моему, нужно выбрать модель? ⚔️' + '\n\n' +
+                            'Сделай это на панели ниже и приступай к своим великим подвигам! 💪';
+
+                        // const comment = text === 'Текст' ?
+                        // 'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
+                        // 'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне';
+                        // messageText = `Вы выбрали конвертацию с помощью ${text === 'Текст' ? 'текста': 'голоса'}.` + '\n' +
+                        //     '<b>Выберете модель:</b>' + '\n\n' +
+                        //     '‼️<b>Помните</b>' + '\n' +
+                        //     comment;
+
+
+                        resultKeyboard = [
+                            [{
+                                text: "Лера"
+                            }, {
+                                text: 'Анна'
+                            }, {
+                                text: '↩️ Назад'
+                            }]
+                        ];
+                        break;
+                    }
+                }
+
+                return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
+                    reply_markup: {
+                        keyboard: resultKeyboard,
+                        resize_keyboard: true
+                    }
+                })
+            }
+
+            modelListener.delete(chatId.toString());
 
             if (messageType === 'Текст' || messageType === 'Text') {
                 textMessageToVoiceListener.set(chatId.toString(), text);
@@ -1241,8 +1309,45 @@ export default async function handleShopBotMessage(db) {
                 }
                 const audioBuffer = Buffer.concat(chunks);
 
-                // Send the audio buffer directly to Telegram
-                await shopBot.sendVoice(chatId, audioBuffer, {
+                const metadata = await mm.parseBuffer(audioBuffer, {
+                    mimeType: 'audio/mpeg'
+                });
+                const duration = metadata.format.duration;
+
+                console.log(duration);
+
+                // Use ffmpeg to trim 1 second from the end
+                const tempFile = tmp.fileSync({
+                    postfix: '.mp3'
+                });
+                fs.writeFileSync(tempFile.name, audioBuffer);
+
+                // Trim the audio to be 1 second shorter
+                const trimmedBuffer = await new Promise((resolve, reject) => {
+                    const stream = ffmpeg(tempFile.name)
+                        .inputFormat('mp3')
+                        .outputOptions(['-t', (duration - 0.2).toString()]) // Trim to duration - 1 second
+                        .on('end', function () {
+                            console.log('Trimming completed');
+                        })
+                        .on('error', function (err) {
+                            console.log('Error during trimming:', err.message);
+                            reject(err);
+                        })
+                        .toFormat('mp3') // Ensure it's in the correct format
+                        .pipe();
+
+                    const chunks = [];
+                    stream.on('data', chunk => chunks.push(chunk));
+                    stream.on('end', () => resolve(Buffer.concat(chunks)));
+                    stream.on('error', reject);
+                });
+
+                // Clean up the temporary file
+                tempFile.removeCallback();
+
+                // Send the trimmed audio buffer directly to Telegram
+                await shopBot.sendVoice(chatId, trimmedBuffer, {
                     filename: 'audio.mp3', // Provide a filename
                     contentType: 'audio/mpeg', // MIME type for audio
                 });
