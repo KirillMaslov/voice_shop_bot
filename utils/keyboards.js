@@ -1,4 +1,4 @@
-export const shopBotMainMenuKeyboard = [
+export const shopBotMainMenuKeyboardRu = [
     [{
         text: '👩 Женские голоса'
     }, {
@@ -9,7 +9,18 @@ export const shopBotMainMenuKeyboard = [
     }]
 ]
 
-export const shopBotOwnCabinetMenu = [
+export const shopBotMainMenuKeyboardEn = [
+    [{
+        text: '👩 Female voices'
+    }, {
+        text: "👨 Male voices"
+    }],
+    [{
+        text: '👨‍💼 Profile'
+    }]
+]
+
+export const shopBotOwnCabinetMenuRu = [
     [{
         text: '🛍️ Покупка голосовых сообщений'
     }, {
@@ -17,5 +28,16 @@ export const shopBotOwnCabinetMenu = [
     }],
     [{
         text: '↩️ Назад'
+    }]
+]
+
+export const shopBotOwnCabinetMenuEn = [
+    [{
+        text: '🛍️ Buy voice messages'
+    }, {
+        text: "🤝 Refferal system"
+    }],
+    [{
+        text: '↩️ Back'
     }]
 ]

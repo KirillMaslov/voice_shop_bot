@@ -6,16 +6,19 @@ import fs from "fs";
 
 import getShopBotUserOrNullByChatId from "../middlewares/getShopBotUserOrNullByChatId.js";
 import {
-    annaDescribtion,
     channelChatId,
     channelLink,
     channelName,
     creatorNick,
     cryptoBotAPIKey,
     elevenLabsApiKey,
-    leraDescribtion,
-    andreyDescription,
-    shopBotAdminCommands
+    shopBotAdminCommands,
+    andreyDescriptionRu,
+    leraDescribtionRu,
+    annaDescribtionRu,
+    andreyDescriptionEn,
+    leraDescriptionEn,
+    annaDescriptionEn
 } from "../config.js";
 import shopBot from "../utils/shopBot.js";
 import {
@@ -36,8 +39,10 @@ import giveShopUserAdminStatus from "../services/giveShopUserAdminStatus.js";
 import getShopBotUsersCountFromDb from "../middlewares/getShopBotUsersCountFromDb.js";
 import getShopBotUsersChatIds from "../middlewares/getShopBotUsersChatIds.js";
 import {
-    shopBotMainMenuKeyboard,
-    shopBotOwnCabinetMenu
+    shopBotMainMenuKeyboardEn,
+    shopBotMainMenuKeyboardRu,
+    shopBotOwnCabinetMenuEn,
+    shopBotOwnCabinetMenuRu
 } from "../utils/keyboards.js";
 import getShopBotUserRefferalsCount from "../middlewares/getShopBotUserRefferalsCount.js";
 import getVoicesCosts from "../middlewares/getVoicesWithCost.js";
@@ -57,20 +62,51 @@ export default async function handleShopBotMessage(db) {
         const foundUserOrNull = await getShopBotUserOrNullByChatId(chatId.toString(), db);
         // checking access
         if (!foundUserOrNull) {
+            if (text === '/start') {
+                return 0;
+            }
+            
             return await shopBot.sendMessage(chatId, 'Вы не зарегистрированы в бота. Нажмите команду /start');
         }
 
+        let messageText = '';
+        let resultKeyboard = shopBotMainMenuKeyboardRu;
+
+        console.log(foundUserOrNull);
+
+        if (!foundUserOrNull.language) {
+            try {
+                await db.run("ALTER TABLE shop_users ADD COLUMN language TEXT DEFAULT 'ru'", function (err) {
+                    if (err) {
+                        return console.error(err.message);
+                    }
+    
+                    console.log('language is updated');
+                });
+            } catch (e) {
+                throw new Error(e);
+            }
+        }
 
         // const voices = await elevenlabs.voices.getAll();
 
         // console.log('Available voices:', voices);
 
         if (foundUserOrNull.isBlocked) {
-            return await shopBot.sendMessage(chatId, `Вы заблокированы в боте. Для разблокировки можете написать @${creatorNick} (https://t.me/${creatorNick})`, {
+            switch (foundUserOrNull.language) {
+                case 'en':
+                    messageText = `You are banned in the bot. To unban, you can contact @${creatorNick} (https://t.me/${creatorNick})`;
+                    break;
+                case "ru":
+                    messageText = `Вы заблокированы в боте. Для разблокировки можете написать @${creatorNick} (https://t.me/${creatorNick})`;
+                    break;
+            }
+
+            return await shopBot.sendMessage(chatId, messageText, {
                 reply_markup: {
                     inline_keyboard: [
                         [{
-                            text: 'Написать для разблокировки',
+                            text: foundUserOrNull.language === 'en' ? 'Write to unban' : 'Написать для разблокировки',
                             url: `https://t.me/${creatorNick}`
                         }]
                     ]
@@ -78,12 +114,21 @@ export default async function handleShopBotMessage(db) {
             })
         }
 
-        const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
+        // const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
 
         if (chatMembership.status === 'left') {
             if (text !== '/start') {
-                console.log('sosi')
-                return await shopBot.sendMessage(chatId, 'Для начала Вам нужно подписаться на канал!', {
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
+                            '❗️ <b>To use the bot, subscribe to the channels</b> 👇🏻';
+                    case "ru":
+                        messageText = '🍓 <b>Ты ещё не подписан на каналы</b>!' + '\n \n' +
+                            '❗️ <b>Для использования бота подпишись на каналы</b> 👇🏻';
+                        break;
+                }
+
+                return await shopBot.sendMessage(chatId, messageText, {
                     reply_markup: {
                         inline_keyboard: [
                             [{
@@ -91,7 +136,7 @@ export default async function handleShopBotMessage(db) {
                                 url: channelLink
                             }],
                             [{
-                                text: "🔎 Проверить подписку",
+                                text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
                                 callback_data: 'check_subscription'
                             }]
                         ]
@@ -485,14 +530,14 @@ export default async function handleShopBotMessage(db) {
                         if (err) {
                             return console.error(err.message);
                         }
-    
+
                         console.log('language is updated');
                     });
                 } catch (e) {
                     throw new Error(e);
                 }
 
-                return await shopBot.sendMessage(chatId, 'Вы успешно заменили цену, теперь это: ' + '\n' + 
+                return await shopBot.sendMessage(chatId, 'Вы успешно заменили цену, теперь это: ' + '\n' +
                     `<b>${voicesNumber}</b> Голосовых 🎙️ - <b>${text}</b>💲` + '\n\n' + shopBotAdminCommands, {
                         parse_mode: "HTML"
                     });
@@ -532,7 +577,7 @@ export default async function handleShopBotMessage(db) {
                 return await shopBot.sendMessage(chatId, 'Вы успешно разослали сообщение всем пользователям' + '\n' + shopBotAdminCommands, {
                     parse_mode: "HTML",
                     reply_markup: {
-                        keyboard: shopBotMainMenuKeyboard
+                        keyboard: shopBotMainMenuKeyboardRu
                     }
                 })
             }
@@ -545,7 +590,8 @@ export default async function handleShopBotMessage(db) {
                 return await shopBot.sendMessage(chatId, 'Поздравляю, вы успешно получили статус администратора ' + shopBotAdminCommands);
             }
 
-            case '↩️ Назад': {
+            case '↩️ Назад':
+            case '↩️ Back': {
                 if (numOfVoicesToBuyListener.has(chatId.toString())) {
                     numOfVoicesToBuyListener.delete(chatId.toString());
                 }
@@ -563,96 +609,202 @@ export default async function handleShopBotMessage(db) {
                 }
 
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucI5nDma6ynZVH5locgWDsWhuGX9CpwACj2cAArmjaUgrEmxhH2HAbDYE");
-                return await shopBot.sendMessage(chatId, '👋 <b>О славный воин, ты вернулся в главное меню!</b>' + '\n' +
-                    'Выбери путь, что приведет тебя к нужному разделу 🏛️⚡️' + '\n \n' +
-                    `<b>Создатель бота:</b> @${creatorNick} 🔱`, {
-                        parse_mode: "HTML",
-                        reply_markup: {
-                            keyboard: shopBotMainMenuKeyboard,
-                            resize_keyboard: true
-                        }
+
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = '👋 <b>Oh glorious warrior, you have returned to the main menu!</b>' + '\n' +
+                            'Choose the path that will lead you to the desired section 🏛️⚡️' + '\n \n' +
+                            `<b>Bot creator:</b> @${creatorNick} 🔱`;
+                        resultKeyboard = shopBotMainMenuKeyboardEn;
+                        break;
+                    case "ru":
+                        messageText = '👋 <b>О славный воин, ты вернулся в главное меню!</b>' + '\n' +
+                            'Выбери путь, что приведет тебя к нужному разделу 🏛️⚡️' + '\n \n' +
+                            `<b>Создатель бота:</b> @${creatorNick} 🔱`;
+                        resultKeyboard = shopBotMainMenuKeyboardRu;
+                        break;
+                }
+
+                return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
+                    reply_markup: {
+                        keyboard: resultKeyboard,
+                        resize_keyboard: true
                     }
-                );
+                });
             }
 
 
-            case '👩 Женские голоса': {
+            case '👩 Женские голоса':
+            case '👩 Female voices': {
                 girlsVoiceTypeListener.set(chatId.toString(), 'true');
 
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = 'Choose the conversion method.' + '\n' +
+                            '📝 <b>Text</b> - the bot will convert the text you write into a pleasant voice message! 💬💪' + '\n' +
+                            '<b>Voice</b> - the bot will create a voice message with a female voice based on your audio, as if it’s the voice of a goddess! 🔊👩‍🎤';
+                        resultKeyboard = [
+                            [{
+                                text: "Text",
+                            }, {
+                                text: "Voice",
+                            }, {
+                                text: '↩️ Back'
+                            }]
+                        ];
+                        break;
+                    case "ru":
+                        messageText = 'Выберете способ преобразования.' + '\n' +
+                            '📝 <b>Текст</b> - бот преобразует текст, который вы напишите, в приятное голосовое сообщение! 💬💪' + '\n' +
+                            '<b>Голосовое</b> - бот сделает голосовое с женским голосом на основе вашего аудио, словно это голос богини! 🔊👩‍🎤';
+                        resultKeyboard = [
+                            [{
+                                text: "Текст",
+                            }, {
+                                text: "Голосовое",
+                            }, {
+                                text: '↩️ Назад'
+                            }]
+                        ];
+                        break;
+                }
+
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucJxnDmdcp8iKj8dYjRVSPLbmDgwwuQAC-WYAArSCaUgzuDOl87Tm2DYE");
-                return await shopBot.sendMessage(chatId, 'Выберете способ преобразования.' + '\n' +
-                    '📝 <b>Текст</b> - бот преобразует текст, который вы напишите, в приятное голосовое сообщение! 💬💪' + '\n' +
-                    '<b>Голосовое</b> - бот сделает голосовое с женским голосом на основе вашего аудио, словно это голос богини! 🔊👩‍🎤', {
-                        parse_mode: "HTML",
-                        reply_markup: {
-                            keyboard: [
-                                [{
-                                    text: "Текст",
-                                }, {
-                                    text: "Голосовое",
-                                }, {
-                                    text: '↩️ Назад'
-                                }]
-                            ],
-                            resize_keyboard: true
-                        }
+                return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
+                    reply_markup: {
+                        keyboard: resultKeyboard,
+                        resize_keyboard: true
                     }
-                );
+                });
             }
 
-            case "👨 Мужские голоса": {
+            case "👨 Мужские голоса":
+            case "👨 Male voices": {
                 modelListener.set(chatId.toString(), "Текст");
 
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        modelListener.set(chatId.toString(), "Text");
+                        messageText = 'You have chosen the section with male voices. 🎙️💪' + '\n' +
+                            '<b>Select a model:</b>' + '\n \n' +
+                            '‼️<b>Remember.</b>' + '\n' +
+                            `enter text with correct spelling and punctuation. Write numbers in words to maintain the precision of the speech. Use stickers to convey the right mood and enhance the effect of your message! 😊🔥`;
+
+                        resultKeyboard = [
+                            [{
+                                text: "Andrew",
+                            }, {
+                                text: '↩️ Назад'
+                            }]
+                        ];
+                        break;
+                    case "ru":
+                        modelListener.set(chatId.toString(), "Текст");
+                        messageText = 'Вы выбрали раздел с мужскими голосами. 🎙️💪' + '\n' +
+                            '<b>Выберете модель:</b>' + '\n \n' +
+                            '‼️<b>Помните.</b>' + '\n' +
+                            `вводите текст с правильной орфографией и всеми знаками препинания. Цифры пишите прописью, чтобы сохранить точность звучания. Используйте стикеры, чтобы передать нужное настроение и усилить эффект вашего сообщения! 😊🔥`;
+                        resultKeyboard = [
+                            [{
+                                text: "Андрей",
+                            }, {
+                                text: '↩️ Назад'
+                            }]
+                        ];
+
+                        break;
+                }
+
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIhnDmY9ZMwmJZ7MVja6WLQRMheMsQACnmYAAtkCaEh506_l6mpDDDYE");
-                return await shopBot.sendMessage(chatId, 'Вы выбрали раздел с мужскими голосами. 🎙️💪' + '\n' +
-                    '<b>Выберете модель:</b>' + '\n \n' +
-                    '‼️<b>Помните.</b>' + '\n' +
-                    `вводите текст с правильной орфографией и всеми знаками препинания. Цифры пишите прописью, чтобы сохранить точность звучания. Используйте стикеры, чтобы передать нужное настроение и усилить эффект вашего сообщения! 😊🔥`, {
-                        parse_mode: "HTML",
-                        reply_markup: {
-                            keyboard: [
-                                [{
-                                    text: "Андрей",
-                                }, {
-                                    text: '↩️ Назад'
-                                }]
-                            ],
-                            resize_keyboard: true
-                        }
+                return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
+                    reply_markup: {
+                        keyboard: resultKeyboard,
+                        resize_keyboard: true
                     }
-                );
+                });
             }
 
-            case '👨‍💼 Личный кабинет': {
+            case '👨‍💼 Личный кабинет':
+            case '👨‍💼 Profile': {
                 const {
                     usersNum
                 } = await getShopBotUsersCountFromDb(db);
 
-                await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIZnDmYekukDQq1QCkH1_zvJ_-FPvQACSVwAAvuvaEgodF_trkXaUjYE");
-                return await shopBot.sendMessage(chatId, '👨‍💼 <b>Ваш профиль</b>' + '\n \n' +
-                    `🚀 Ваш уникальный Telegram ID: <code>${chatId}</code>` + '\n \n' +
-                    `<b>Связь с администратором:</b> @${creatorNick}` + '\n \n' +
-                    '💡<b>Есть предложения по улучшению бота?</b>' + '\n' +
-                    '💡<b>Поделитесь своими идеями с администратором!</b>' + '\n \n' +
-                    `👥 Общее количество пользователей: ${usersNum}` + '\n \n' +
-                    `⏳ За все время вы записали: <b>${foundUserOrNull.totalVoicesRecorded}</b> голосовых сообщений` + '\n \n' +
-                    `🥳 У вас осталось <b>${foundUserOrNull.voicesAvaliable}</b> доступных голосовых сообщений` + '\n' +
-                    '🤬 Не устроило качество голосового сообщения? 🤗 <b>Мы его заменим!</b>' + '\n' +
-                    'Свяжитесь с администратором для замены.', {
-                        parse_mode: "HTML",
-                        reply_markup: {
-                            keyboard: shopBotOwnCabinetMenu,
-                            resize_keyboard: true
-                        }
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = '👨‍💼 <b>Your Profile</b>' + '\n \n' +
+                            `🚀 Your unique Telegram ID: <code>${chatId}</code>` + '\n \n' +
+                            `<b>Contact the administrator:</b> @${creatorNick}` + '\n \n' +
+                            '💡<b>Have suggestions for improving the bot?</b>' + '\n' +
+                            '💡<b>Share your ideas with the administrator!</b>' + '\n \n' +
+                            `👥 Total number of users: ${usersNum}` + '\n \n' +
+                            `⏳ You have recorded: <b>${foundUserOrNull.totalVoicesRecorded}</b> voice messages` + '\n \n' +
+                            `🥳 You have <b>${foundUserOrNull.voicesAvaliable}</b> available voice messages left` + '\n' +
+                            '🤬 Not satisfied with the quality of the voice message? 🤗 <b>We will replace it!</b>' + '\n' +
+                            'Contact the administrator for a replacement.';
+                        resultKeyboard = shopBotOwnCabinetMenuEn;
+                        break;
+                    case "ru":
+                        messageText = '👨‍💼 <b>Ваш профиль</b>' + '\n \n' +
+                            `🚀 Ваш уникальный Telegram ID: <code>${chatId}</code>` + '\n \n' +
+                            `<b>Связь с администратором:</b> @${creatorNick}` + '\n \n' +
+                            '💡<b>Есть предложения по улучшению бота?</b>' + '\n' +
+                            '💡<b>Поделитесь своими идеями с администратором!</b>' + '\n \n' +
+                            `👥 Общее количество пользователей: ${usersNum}` + '\n \n' +
+                            `⏳ За все время вы записали: <b>${foundUserOrNull.totalVoicesRecorded}</b> голосовых сообщений` + '\n \n' +
+                            `🥳 У вас осталось <b>${foundUserOrNull.voicesAvaliable}</b> доступных голосовых сообщений` + '\n' +
+                            '🤬 Не устроило качество голосового сообщения? 🤗 <b>Мы его заменим!</b>' + '\n' +
+                            'Свяжитесь с администратором для замены.';
+                        resultKeyboard = shopBotOwnCabinetMenuRu;
+                        break;
+                }
+                await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIZnDmYekukDQq1QCkH1_zvJ_-FPvQACSVwAAvuvaEgodF_trkXaUjYE", {
+                    reply_markup: {
+                        keyboard: resultKeyboard,
+                        resize_keyboard: true
                     }
-                );
+                });
+
+                return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{
+                                text: "🇷🇺 Язык",
+                                callback_data: 'changeLanguage_ru'
+                            }, {
+                                text: "🇬🇧 Language",
+                                callback_data: 'changeLanguage_en'
+                            }]
+                        ],
+                    }
+                });
 
             }
 
-            case "🤝 Реферальная система": {
+            case "🤝 Реферальная система":
+            case "🤝 Refferal system": {
                 const refferalsCount = await getShopBotUserRefferalsCount(chatId.toString(), db);
 
-                console.log(refferalsCount);
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = '<b>Invite friends to our glorious kingdom and receive generous gifts from the gods!</b> 🎁✨' + '\n \n' +
+                            '🔱 Here is your sacred referral link, granted by Hades himself:' + '\n' +
+                            `https://t.me/MegSoundBot?start=${chatId}` + '\n \n' +
+                            `Number of invited heroes: <b>${refferalsCount.usersNum}</b> 🏛️👏` + '\n \n' +
+                            '<i>For every fifth invited friend, the gods will reward you with three additional voice messages!</i> 💬🎶';
+                        break;
+                    case "ru":
+                        messageText = '<b>Приглашай друзей в наше славное царство и получай щедрые дары богов!</b>  🎁✨' + '\n \n' +
+                            '🔱 Вот твоя священная реферальная ссылка, дарованная самим Аидом:' + '\n' +
+                            `https://t.me/MegSoundBot?start=${chatId}` + '\n \n' +
+                            `Количество приведённых героев: <b>${refferalsCount.usersNum}</b> 🏛️👏` + '\n \n' +
+                            '<i>За каждого пятого приглашённого друга, боги наградят тебя тремя дополнительными голосовыми сообщениями!</i> 💬🎶';
+                        break;
+                }
 
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIRnDmX-bm0aaPcW6AZf_ETGxkbHbgAC4F0AAm01aEjrUPZyq9V63TYE");
                 // return await shopBot.sendMessage(chatId, 'Пригласи друга и получи бонус! 🎁' + '\n \n' +
@@ -665,31 +817,38 @@ export default async function handleShopBotMessage(db) {
                 //     }
                 // );
 
-                return await shopBot.sendMessage(chatId, '<b>Приглашай друзей в наше славное царство и получай щедрые дары богов!</b>  🎁✨' + '\n \n' +
-                    '🔱 Вот твоя священная реферальная ссылка, дарованная самим Аидом:' + '\n' +
-                    `https://t.me/MegSoundBot?start=${chatId}` + '\n \n' +
-                    `Количество приведённых героев: <b>${refferalsCount.usersNum}</b> 🏛️👏` + '\n \n' +
-                    '<i>За каждого пятого приглашённого друга, боги наградят тебя тремя дополнительными голосовыми сообщениями!</i> 💬🎶', {
-                        parse_mode: "HTML",
-                        disable_web_page_preview: true
-                    }
-                );
+                return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
+                    disable_web_page_preview: true
+                });
 
             }
 
-            case '🛍️ Покупка голосовых сообщений': {
+            case '🛍️ Покупка голосовых сообщений':
+            case '🛍️ Buy voice messages': {
                 const voicesCostsArr = await getVoicesCosts(db);
 
-                const voicesMessages = voicesCostsArr ? voicesCostsArr.map((voice) => (`<b>${voice.number}</b> Голосовых 🎙️ - <b>${voice.cost}</b>💲`)).join('\n') : '<b>В боте нету голосовых</b>';
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = 'Choose the number of voice messages you want to purchase' + '\n' +
+                            '💸<b>Available prices</b>💸';
+                        break;
+                    case "ru":
+                        messageText = 'Выберите количество голосовых сообщений, которые хотите приобрести' + '\n' +
+                            '💸<b>Доступные цены</b>💸';
+                        break;
+                }
+
+                const voicesMessages = voicesCostsArr ? voicesCostsArr.map((voice) => (`<b>${voice.number}</b> ${foundUserOrNull.language === 'en' ? 'Voices' : 'Голосовых'} 🎙️ - <b>${voice.cost}</b>💲`)).join('\n') : foundUserOrNull.language === 'en' ? '' : '<b>В боте нету голосовых</b>';
 
                 const voicesArr = voicesCostsArr ? voicesCostsArr.map((voice) => {
                     return [{
-                        text: `${voice.number} голосовых 🎙️`
+                        text: `${voice.number} ${foundUserOrNull.language === 'en' ? 'voices' : 'голосовых'} 🎙️`
                     }];
                 }) : [];
 
                 voicesArr.push([{
-                    text: '↩️ Назад'
+                    text: foundUserOrNull.language === 'en' ? '↩️ Back' : '↩️ Назад'
                 }])
 
                 numOfVoicesToBuyListener.set(chatId.toString(), 'true')
@@ -707,8 +866,7 @@ export default async function handleShopBotMessage(db) {
                 //     }
                 // );
 
-                return await shopBot.sendMessage(chatId, 'Выберите количество голосовых сообщений, которые хотите приобрести' + '\n' +
-                    '💸<b>Доступные цены</b>💸' + '\n \n' +
+                return await shopBot.sendMessage(chatId, messageText + '\n \n' +
                     voicesMessages, {
                         reply_markup: {
                             keyboard: voicesArr,
@@ -730,9 +888,18 @@ export default async function handleShopBotMessage(db) {
             const voices = await getVoicesToBuyByNumberFromDb(voicesToBuyNum, db);
 
             if (!voices) {
-                return await shopBot.sendMessage(chatId, `Данное количество голосовых для покупки временно не доступно` + '\n \n' +
-                    'Воспользуйтесь клавиатурой'
-                );
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = `The requested number of voice messages for purchase is temporarily unavailable` + '\n \n' +
+                            'Please use the keyboard';
+                        break;
+                    case "ru":
+                        messageText = `Данное количество голосовых для покупки временно не доступно` + '\n \n' +
+                            'Воспользуйтесь клавиатурой';
+                        break;
+                }
+
+                return await shopBot.sendMessage(chatId, messageText);
             }
 
             const newInvoice = await CryptoBotClient.createInvoice({
@@ -740,86 +907,150 @@ export default async function handleShopBotMessage(db) {
                 currency: "USDT"
             });
 
-            return await shopBot.sendMessage(chatId, `Сумма к оплате: ${voices.cost}💲` + '\n \n' +
-                'После успешной проведенной операции нажмите кнопку "Проверить"', {
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{
-                                text: '💰 Оплатить',
-                                url: newInvoice.payUrl
-                            }],
-                            [{
-                                text: '🔁 Проверить',
-                                callback_data: `checkCryptoBotPayment_${voicesToBuyNum}_${newInvoice.id}`
-                            }]
-                        ]
-                    }
+            switch (foundUserOrNull.language) {
+                case 'en':
+                    messageText = `Amount to be paid: ${voices.cost}💲` + '\n \n' +
+                        'After a successful transaction, click the "Check" button';
+                    break;
+                case "ru":
+                    messageText = `Сумма к оплате: ${voices.cost}💲` + '\n \n' +
+                        'После успешной проведенной операции нажмите кнопку "Проверить"';
+                    break;
+            }
+
+            return await shopBot.sendMessage(chatId, messageText, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: foundUserOrNull.language === 'en' ? '💰 Pay' : '💰 Оплатить',
+                            url: newInvoice.payUrl
+                        }],
+                        [{
+                            text: foundUserOrNull.language === 'en' ? '🔁 Check' : '🔁 Проверить',
+                            callback_data: `checkCryptoBotPayment_${voicesToBuyNum}_${newInvoice.id}`
+                        }]
+                    ]
                 }
-            );
+            });
         }
 
         if (girlsVoiceTypeListener.has(chatId.toString())) {
             girlsVoiceTypeListener.delete(chatId.toString());
 
-            if (text !== 'Текст' && text !== 'Голосовое')
+            if (text !== 'Текст' && text !== 'Голосовое' && text !== 'Text' && text !== 'Voice')
                 return 0;
 
-            const comment = text === 'Текст' ?
-                'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
-                'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне'
+            switch (foundUserOrNull.language) {
+                case 'en': {
+                    const comment = text === 'Text' ?
+                        'Enter the text with correct spelling and all punctuation marks, and write numbers in words! 📜✍️' :
+                        'After selecting a model, record a voice message clearly, without background noise';
+
+                    messageText = `You have chosen conversion using ${text === 'Text' ? 'text' : 'voice'}.` + '\n' +
+                        '<b>Select a model:</b>' + '\n\n' +
+                        '‼️<b>Remember</b>' + '\n' +
+                        comment;
+
+                    resultKeyboard = [
+                        [{
+                            text: "Lera"
+                        }, {
+                            text: 'Ann'
+                        }, {
+                            text: '↩️ Back'
+                        }]
+                    ];
+                    break;
+                }
+
+                case 'ru': {
+                    const comment = text === 'Текст' ?
+                        'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
+                        'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне';
+
+
+                    messageText = `Вы выбрали конвертацию с помощью ${text === 'Текст' ? 'текста': 'голоса'}.` + '\n' +
+                        '<b>Выберете модель:</b>' + '\n\n' +
+                        '‼️<b>Помните</b>' + '\n' +
+                        comment;
+
+                    resultKeyboard = [
+                        [{
+                            text: "Лера"
+                        }, {
+                            text: 'Анна'
+                        }, {
+                            text: '↩️ Назад'
+                        }]
+                    ];
+                    break;
+                }
+            }
+
 
             await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIhnDmY9ZMwmJZ7MVja6WLQRMheMsQACnmYAAtkCaEh506_l6mpDDDYE");
 
             modelListener.set(chatId.toString(), text);
 
-            return await shopBot.sendMessage(chatId, `Вы выбрали конвертацию с помощью ${text === 'Текст' ? 'текста': 'голоса'}.` + '\n' +
-                '<b>Выберете модель:</b>' + '\n\n' +
-                '‼️<b>Помните</b>' + '\n' +
-                comment, {
-                    parse_mode: "HTML",
-                    reply_markup: {
-                        keyboard: [
-                            [{
-                                text: "Лера"
-                            }, {
-                                text: 'Анна'
-                            }, {
-                                text: '↩️ Назад'
-                            }]
-                        ],
-                        resize_keyboard: true
-                    }
+            return await shopBot.sendMessage(chatId, messageText, {
+                parse_mode: "HTML",
+                reply_markup: {
+                    keyboard: resultKeyboard,
+                    resize_keyboard: true
                 }
-            )
+            })
         }
 
         if (modelListener.has(chatId.toString())) {
             const messageType = modelListener.get(chatId.toString());
             modelListener.delete(chatId.toString());
 
-            if (!["Лера", 'Анна', 'Андрей'].includes(text))
+            if (!["Лера", 'Анна', 'Андрей', "Lera", 'Ann', 'Andrew'].includes(text))
                 return 0;
 
-            const age = text === "Лера" ? 18 : text === 'Анна' ? 21 : 20;
-
-            if (messageType === 'Текст') {
+            if (messageType === 'Текст' || messageType === 'Text') {
                 textMessageToVoiceListener.set(chatId.toString(), text);
             } else {
                 voiceMessageToVoiceListener.set(chatId.toString(), text);
             }
 
-            return await shopBot.sendPhoto(chatId, `./images/${text === 'Андрей' ? 'malePhoto': text === "Лера" ? 'Lera' : 'Anna'}.jpg`, {
-                caption: `<b>${text}</b>. ${age} лет` + '\n \n' +
-                    `${text === 'Андрей' ? andreyDescription: text === "Лера" ? leraDescribtion : annaDescribtion}` + '\n \n' +
-                    `Отправьте ${messageType.toLowerCase()}, который хочешь превратить в голосовое послание, и оно прозвучит, словно гимн, достойный царей! 🏛️` + '\n' +
-                    'Или нажми “↩️ <b>Назад</b>”, если твой выбор пока не определён. ⚔️',
-                    parse_mode: "HTML",
-                reply_markup: {
-                    keyboard: [
+            switch (foundUserOrNull.language) {
+                case 'en': {
+                    const age = text === "Lera" ? 18 : text === 'Ann' ? 21 : 20;
+                    messageText = `<b>${text}</b>. ${age} years old` + '\n \n' +
+                        `${text === 'Andrey' ? andreyDescriptionEn : text === "Lera" ? leraDescriptionEn : annaDescriptionEn}` + '\n \n' +
+                        `Send the ${messageType.toLowerCase()} that you want to turn into a voice message, and it will sound like a hymn worthy of kings! 🏛️` + '\n' +
+                        'Or press “↩️ <b>Back</b>” if your choice is not yet decided. ⚔️';
+
+                    resultKeyboard = [
                         [{
-                            text: "↩️ Назад"
+                            text: '↩️ Back'
                         }]
-                    ],
+                    ];
+                    break;
+                }
+
+                case 'ru': {
+                    const age = text === "Лера" ? 18 : text === 'Анна' ? 21 : 20;
+                    messageText = `<b>${text}</b>. ${age} лет` + '\n \n' +
+                        `${text === 'Андрей' ? andreyDescriptionRu : text === "Лера" ? leraDescribtionRu : annaDescribtionRu}` + '\n \n' +
+                        `Отправьте ${messageType.toLowerCase()}, который хочешь превратить в голосовое послание, и оно прозвучит, словно гимн, достойный царей! 🏛️` + '\n' +
+                        'Или нажми “↩️ <b>Назад</b>”, если твой выбор пока не определён. ⚔️';
+
+                    resultKeyboard = [
+                        [{
+                            text: '↩️ Назад'
+                        }]
+                    ];
+                    break;
+                }
+            }
+
+            return await shopBot.sendPhoto(chatId, `./images/${(text === 'Андрей' || text === 'Andrew') ? 'malePhoto': (text === "Лера" || text === 'Lera') ? 'Lera' : 'Anna'}.jpg`, {
+                caption: messageText,
+                parse_mode: "HTML",
+                reply_markup: {
+                    keyboard: resultKeyboard,
                     resize_keyboard: true
                 }
             })
@@ -834,21 +1065,42 @@ export default async function handleShopBotMessage(db) {
 
             if (foundUserOrNull.voicesAvaliable <= 0 && foundUserOrNull.status !== 'admin') {
                 textMessageToVoiceListener.delete(chatId.toString());
-                return await shopBot.sendMessage(chatId, 'У вас закончились голосовые. Для покупки перейдите в личный кабинет.', {
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = 'You have run out of voice messages. To purchase, go to your personal account.';
+
+                        break;
+                    case "ru":
+                        messageText = 'У вас закончились голосовые. Для покупки перейдите в личный кабинет.';
+                        break;
+                }
+
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        resultKeyboard = shopBotMainMenuKeyboardEn;
+                        break;
+                    case "ru":
+                        resultKeyboard = shopBotMainMenuKeyboardRu;
+                        break;
+                }
+
+                return await shopBot.sendMessage(chatId, messageText, {
                     reply_markup: {
-                        keyboard: shopBotMainMenuKeyboard
+                        keyboard: resultKeyboard
                     }
                 });
             }
 
             try {
-                await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundUserOrNull.voicesAvaliable) - 1, chatId.toString()], function (err) {
-                    if (err) {
-                        return console.error(err.message);
-                    }
+                if (foundUserOrNull.status !== 'admin') {
+                    await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundUserOrNull.voicesAvaliable) - 1, chatId.toString()], function (err) {
+                        if (err) {
+                            return console.error(err.message);
+                        }
 
-                    console.log('language is updated');
-                });
+                        console.log('language is updated');
+                    });
+                }
 
                 await db.run('UPDATE shop_users SET totalVoicesRecorded = ? WHERE chatId = ?', [Number(foundUserOrNull.totalVoicesRecorded) + 1, chatId.toString()], function (err) {
                     if (err) {
@@ -861,32 +1113,91 @@ export default async function handleShopBotMessage(db) {
                 throw new Error(e);
             }
 
-            const speaker = modelName === 'Андрей' ? {
-                voice_id: 'm2gtxNsYBaIRqPBA5vU5',
-                voice: 'Oleg Krugliak ',
-                voice_settings: {
-                    stability: 0.7,
-                    similarity_boost: 0.76,
-                    style: 0.32,
-                    use_speaker_boost: false
+            let speaker;
+
+            switch (modelName) {
+                case 'Андрей': {
+                    speaker = {
+                        voice_id: 'm2gtxNsYBaIRqPBA5vU5',
+                        voice: 'Oleg Krugliak ',
+                        voice_settings: {
+                            stability: 0.7,
+                            similarity_boost: 0.76,
+                            style: 0.32,
+                            use_speaker_boost: false
+                        }
+                    };
+                    break;
                 }
-            } : modelName === "Лера" ? {
-                voice_id: "wFyaValVXXUOvVMKrn4K", // Use the correct voice ID (Anna)
-                voice: "Anna",
-                voice_settings: {
-                    stability: 0.54,
-                    similarity_boost: 0.48,
-                    style: 0.2,
-                    use_speaker_boost: true
+
+                case 'Lera': {
+                    speaker = {
+                        voice_id: '2rJo4BNbDooc3q89IWVH',
+                        voice: 'Natasha - Valley girl',
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75,
+                            style: 0,
+                            use_speaker_boost: true
+                        }
+                    };
+                    break;
                 }
-            } : {
-                voice_id: '6CzwEjVC4rBP2a3QLCH0',
-                voice: 'Faja',
-                voice_settings: {
-                    stability: 0.32,
-                    similarity_boost: 0.28,
-                    style: 0.2,
-                    use_speaker_boost: true
+
+                case 'Andrew': {
+                    speaker = {
+                        voice_id: 'jPI42gyGKKPr0fEdosmi',
+                        voice: 'Max - fast, friendly, and direct',
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75,
+                            style: 0.3,
+                            use_speaker_boost: true
+                        }
+                    };
+                    break;
+                }
+
+                case "Ann": {
+                    speaker = {
+                        voice_id: 'BSHBic1jFUy7dqyXEdTY',
+                        voice: 'Sophia Dean',
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75,
+                            style: 0,
+                            use_speaker_boost: true
+                        }
+                    };
+                    break;
+                }
+
+                case "Лера": {
+                    speaker = {
+                        voice_id: "wFyaValVXXUOvVMKrn4K", // Use the correct voice ID (Anna)
+                        voice: "Anna",
+                        voice_settings: {
+                            stability: 0.54,
+                            similarity_boost: 0.48,
+                            style: 0.2,
+                            use_speaker_boost: true
+                        }
+                    };
+                    break;
+                }
+
+                default: {
+                    speaker = {
+                        voice_id: '6CzwEjVC4rBP2a3QLCH0',
+                        voice: 'Faja',
+                        voice_settings: {
+                            stability: 0.32,
+                            similarity_boost: 0.28,
+                            style: 0.2,
+                            use_speaker_boost: true
+                        }
+                    };
+                    break;
                 }
             }
 

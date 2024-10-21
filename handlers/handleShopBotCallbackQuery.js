@@ -6,11 +6,15 @@ import {
 } from "../config.js";
 import getShopBotUserOrNullByChatId from "../middlewares/getShopBotUserOrNullByChatId.js";
 import {
-    shopBotMainMenuKeyboard
+    shopBotMainMenuKeyboardEn,
+    shopBotMainMenuKeyboardRu,
+    shopBotOwnCabinetMenuEn,
+    shopBotOwnCabinetMenuRu
 } from "../utils/keyboards.js";
 import CryptoBotAPI from 'crypto-bot-api';
 import shopBot from "../utils/shopBot.js";
 import getShopBotAdminsFromDb from "../middlewares/getShopBotAdminsFromDb.js";
+import getShopBotUsersCountFromDb from "../middlewares/getShopBotUsersCountFromDb.js";
 
 
 const CryptoBotClient = new CryptoBotAPI(cryptoBotAPIKey);
@@ -21,13 +25,9 @@ export default async function handleShopBotCallbackQuery(db) {
         const chatId = query.message.chat.id;
         const messageId = query.message.message_id;
         const foundUserOrNull = await getShopBotUserOrNullByChatId(chatId.toString(), db);
-
-        if (query.data === 'soldOut') {
-            return await shopBot.answerCallbackQuery(queryId, {
-                text: 'Данный товар распродан, ожидайте его поступления!',
-                show_alert: true,
-            });
-        }
+        let alertText = '';
+        let messageText = '';
+        let resultKeyboard = shopBotMainMenuKeyboardRu;
 
         if (query.data === 'cancel') {
             await shopBot.answerCallbackQuery(queryId, {
@@ -69,110 +69,145 @@ export default async function handleShopBotCallbackQuery(db) {
             })
         }
 
+        if (query.data.includes('changeLanguage')) {
+            const newLanguage = query.data.split('_')[1];
+
+            try {
+                await db.run('UPDATE shop_users SET language = ? WHERE chatId = ?', [newLanguage.toLowerCase(), chatId.toString()], function (err) {
+                    if (err) {
+                        return console.error(err.message);
+                    }
+
+                    console.log('language is updated');
+                });
+            } catch (e) {
+                throw new Error(e);
+            }
+
+            const {
+                usersNum
+            } = await getShopBotUsersCountFromDb(db);
+
+            switch (newLanguage) {
+                case 'en':
+                    messageText = '👨‍💼 <b>Your Profile</b>' + '\n \n' +
+                        `🚀 Your unique Telegram ID: <code>${chatId}</code>` + '\n \n' +
+                        `<b>Contact the administrator:</b> @${creatorNick}` + '\n \n' +
+                        '💡<b>Have suggestions for improving the bot?</b>' + '\n' +
+                        '💡<b>Share your ideas with the administrator!</b>' + '\n \n' +
+                        `👥 Total number of users: ${usersNum}` + '\n \n' +
+                        `⏳ You have recorded: <b>${foundUserOrNull.totalVoicesRecorded}</b> voice messages` + '\n \n' +
+                        `🥳 You have <b>${foundUserOrNull.voicesAvaliable}</b> available voice messages left` + '\n' +
+                        '🤬 Not satisfied with the quality of the voice message? 🤗 <b>We will replace it!</b>' + '\n' +
+                        'Contact the administrator for a replacement.';
+                    alertText = "You've chosen the language 🇬🇧";
+                    resultKeyboard = shopBotOwnCabinetMenuEn;
+                    break;
+                case "ru":
+                    messageText = '👨‍💼 <b>Ваш профиль</b>' + '\n \n' +
+                        `🚀 Ваш уникальный Telegram ID: <code>${chatId}</code>` + '\n \n' +
+                        `<b>Связь с администратором:</b> @${creatorNick}` + '\n \n' +
+                        '💡<b>Есть предложения по улучшению бота?</b>' + '\n' +
+                        '💡<b>Поделитесь своими идеями с администратором!</b>' + '\n \n' +
+                        `👥 Общее количество пользователей: ${usersNum}` + '\n \n' +
+                        `⏳ За все время вы записали: <b>${foundUserOrNull.totalVoicesRecorded}</b> голосовых сообщений` + '\n \n' +
+                        `🥳 У вас осталось <b>${foundUserOrNull.voicesAvaliable}</b> доступных голосовых сообщений` + '\n' +
+                        '🤬 Не устроило качество голосового сообщения? 🤗 <b>Мы его заменим!</b>' + '\n' +
+                        'Свяжитесь с администратором для замены.';
+                    alertText = "Вы выбрали язык 🇷🇺";
+                    resultKeyboard = shopBotOwnCabinetMenuRu;
+                    break;
+            }
+
+            await shopBot.answerCallbackQuery(queryId, {
+                text: alertText,
+                show_alert: true,
+            });
+
+            await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIZnDmYekukDQq1QCkH1_zvJ_-FPvQACSVwAAvuvaEgodF_trkXaUjYE", {
+                reply_markup: {
+                    keyboard: resultKeyboard,
+                    resize_keyboard: true
+                }
+            });
+
+            return await shopBot.sendMessage(chatId, messageText, {
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: "🇷🇺 Язык",
+                            callback_data: 'changeLanguage_ru'
+                        }, {
+                            text: "🇬🇧 Language",
+                            callback_data: 'changeLanguage_en'
+                        }]
+                    ],
+                }
+            });
+        }
+
         if (query.data === 'check_subscription') {
             const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
 
-            console.log(chatMembership);
+            const avaliableNumber = foundUserOrNull.voicesAvaliable;
+
+            switch (foundUserOrNull.language) {
+                case 'en':
+                    messageText = '👋<b>Hello, hero! I am a bot that turns text into powerful voice messages, like Hades cutting chains with a single strike! 💪⚡️</b>' + '\n \n' +
+                        `Creator: @${creatorNick}, the master of sound! 🎤🔥` + '\n \n' +
+                        `You have <b>${avaliableNumber}</b> free voice messages — use them wisely, like Hades uses his power! 🏆💥 Ready to create something epic? Then let’s go! 🎧✨`;
+                    resultKeyboard = shopBotMainMenuKeyboardEn;
+                    alertText = 'Channel subscription not found, please subscribe to the channel and press the button again';
+
+                    break;
+                case "ru":
+                    messageText = '👋<b>👋 Привет, герой! Я бот, который превращает текст в мощные голосовые сообщения, словно Аид одним движением разрубает цепи! 💪⚡️</b>' + '\n \n' +
+                        `Создатель: @${creatorNick}, , мастер звука! 🎤🔥` + '\n \n' +
+                        `У тебя есть <b>${avaliableNumber}</b> бесплатных голосовых сообщений — используй их с умом, как Аид использует свою силу! 🏆💥 Готов создать что-то эпическое? Тогда вперед! 🎧✨`;
+                    resultKeyboard = shopBotMainMenuKeyboardRu;
+                    alertText = 'Подписка на канал не найдена, подпишитесь на канал и нажмите кнопку повторно';
+                    break;
+            }
 
             if (chatMembership.status !== 'left') {
-                try {
-                    db.run('UPDATE shop_users SET isSubscribed = ? WHERE chatId = ?', [
-                        1,
-                        chatId.toString(),
-                    ], function (err) {
-                        if (err) {
-                            return console.error(err.message);
-                        }
-
-                        console.log(`Email adress was updated`);
-                    });
-                } catch (e) {
-                    throw new Error(e);
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        alertText = 'You have successfully subscribed to the channel';
+                        break;
+                    case "ru":
+                        alertText = 'Вы успешно подписались на канал';
+                        break;
                 }
-
                 await shopBot.answerCallbackQuery(queryId, {
-                    text: 'Вы успешно подписались на канал',
+                    text: alertText,
                     show_alert: true,
                 });
 
-                await shopBot.editMessageText('✅ Вы подписались на наш канал', {
-                    reply_markup: {
-                        inline_keyboard: []
-                    },
-                    chat_id: chatId,
-                    message_id: messageId
-                });
-
-                const avaliableNumber = foundUserOrNull ? foundUserOrNull.voicesAvaliable : 3;
+                await shopBot.deleteMessage(chatId, messageId);
 
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIpnDmZuToviJWSuPB_N-oVGbci7IQACNFkAAjiScEjRPtOS1bNCfTYE");
 
                 return await shopBot.sendAnimation(chatId, './images/intro.MP4', {
                     parse_mode: "HTML",
-                    caption:  '👋<b>👋 Привет, герой! Я бот, который превращает текст в мощные голосовые сообщения, словно Аид одним движением разрубает цепи! 💪⚡️</b>' + '\n \n' +
-                    `Создатель: @${creatorNick}, , мастер звука! 🎤🔥` + '\n \n' +
-                    `У тебя есть <b>${avaliableNumber}</b> бесплатных голосовых сообщений — используй их с умом, как Аид использует свою силу! 🏆💥 Готов создать что-то эпическое? Тогда вперед! 🎧✨`,
+                    caption: messageText,
                     reply_markup: {
-                        keyboard: shopBotMainMenuKeyboard,
+                        keyboard: resultKeyboard,
                         resize_keyboard: true
                     }
                 });
             }
 
-            await shopBot.answerCallbackQuery(queryId, {
-                text: 'Подписка на канал не найдена, подпишитесь на канал и нажмите кнопку повторно',
+            return await shopBot.answerCallbackQuery(queryId, {
+                text: alertText,
                 show_alert: true,
             });
 
         }
 
-        if (query.data.includes('payWithCryptoBot')) {
-            const goodId = query.data.split('_')[1];
-            const good = await getShopBotGoodFromDbById(goodId, db);
-            if (!good) {
-                return await shopBot.editMessageText('Данного товара уже нету в боте, воспользуйтесь меню', {
-                    chat_id: chatId,
-                    message_id: messageId
-                })
-            }
-
-            const newInvoice = await CryptoBotClient.createInvoice({
-                amount: good.cost,
-                currency: "USDT"
-            });
-
-            console.log(newInvoice);
-
-            return await shopBot.editMessageText('✅ Счет на оплату CryptoBot создан, нажмите "<b>Перейти к оплате</b>" и оплатите товар.' + '\n \n' +
-                `Сумма к оплате: <b>${good.cost} USDT</b>` + '\n \n' +
-                'После оплаты бот передаст ваш заказ администрации и вы получите товар.', {
-                    parse_mode: "HTML",
-                    chat_id: chatId,
-                    message_id: messageId,
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{
-                                text: '✅ Перейти к оплате',
-                                url: newInvoice.payUrl
-                            }],
-                            [{
-                                text: '☑️ Проверить оплату',
-                                callback_data: `checkCryptoBotPayment_${goodId}_${newInvoice.id}`
-                            }],
-                            [{
-                                text: 'Назад 🔙',
-                                callback_data: `selectGood_${goodId}`
-                            }]
-                        ]
-                    }
-                });
-        }
-
         if (query.data.includes('checkCryptoBotPayment')) {
             const voicesNumber = query.data.split('_')[1];
             const invoiceId = query.data.split('_')[2];
-
-            console.log('invoiceId: ', invoiceId);
 
             const newInvoice = await CryptoBotClient.getInvoices({
                 asset: "USDT",
@@ -180,11 +215,18 @@ export default async function handleShopBotCallbackQuery(db) {
                 count: 1
             });
 
-            console.log('Invoice: ', newInvoice)
-
             if (newInvoice.items[0].status === 'active') {
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        alertText = 'You haven’t paid for the voice messages yet! Please make the payment using the link below the message';
+                        break;
+                    case "ru":
+                        alertText = 'Вы ещё не оплатили голосовые! Оплатите его по ссылке под сообщением';
+                        break;
+                }
+
                 return await shopBot.answerCallbackQuery(queryId, {
-                    text: 'Вы ещё не оплатили ваш товар! Оплатите его по ссылке под сообщением',
+                    text: alertText,
                     show_alert: true,
                 });
             }
@@ -216,22 +258,33 @@ export default async function handleShopBotCallbackQuery(db) {
                 console.log(e);
             }
 
+            switch (foundUserOrNull.language) {
+                case 'en':
+                    alertText = '💸 Your purchase was successfully completed!';
+                    messageText = '💸 <b>Your purchase was successfully completed!</b>.' + "\n" +
+                        '🥰 <b><i>The number of voice messages available to you has been updated</i></b>';
+                    break;
+                case "ru":
+                    alertText = '💸 Ваша покупка успешно завершена!';
+                    messageText = '💸 <b>Ваша покупка успешно завершена!</b>.' + "\n" +
+                        '🥰 <b><i>Число доступных вам голосовых было изменено</i></b>';
+                    break;
+            }
+
 
             await shopBot.answerCallbackQuery(queryId, {
-                text: '💸 Ваша покупка успешно завершена!',
+                text: alertText,
                 show_alert: true,
             });
 
-            return await shopBot.editMessageText('💸 <b>Ваша покупка успешно завершена!</b>.' + "\n" +
-                '🥰 <b><i>Число доступных вам голосовых было изменено</i></b>', {
-                    chat_id: chatId,
-                    message_id: messageId,
-                    parse_mode: "HTML",
-                    reply_markup: {
-                        inline_keyboard: []
-                    }
+            return await shopBot.editMessageText(messageText, {
+                chat_id: chatId,
+                message_id: messageId,
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: []
                 }
-            );
+            });
         }
 
     });

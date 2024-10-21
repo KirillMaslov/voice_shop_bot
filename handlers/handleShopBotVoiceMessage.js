@@ -30,7 +30,8 @@ import {
 } from "../utils/maps.js";
 import getShopBotUserOrNullByChatId from "../middlewares/getShopBotUserOrNullByChatId.js";
 import {
-    shopBotMainMenuKeyboard
+    shopBotMainMenuKeyboardEn,
+    shopBotMainMenuKeyboardRu
 } from "../utils/keyboards.js";
 
 
@@ -49,6 +50,8 @@ export default async function handleShopBotVoiceMessage(db) {
         const chatId = msg.chat.id;
 
         const foundUserOrNull = await getShopBotUserOrNullByChatId(chatId.toString(), db);
+        let messageText = '';
+        let resultKeyboard;
 
         if (voiceMessageToVoiceListener.has(chatId.toString())) {
             const modelName = voiceMessageToVoiceListener.get(chatId.toString());
@@ -58,22 +61,42 @@ export default async function handleShopBotVoiceMessage(db) {
 
             if (foundUserOrNull.voicesAvaliable <= 0 && foundUserOrNull.status !== 'admin') {
                 voiceMessageToVoiceListener.delete(chatId.toString());
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = 'You have run out of voice messages. To purchase, go to your personal account.';
 
-                return await shopBot.sendMessage(chatId, 'У вас закончились голосовые. Для покупки перейдите в личный кабинет.', {
+                        break;
+                    case "ru":
+                        messageText = 'У вас закончились голосовые. Для покупки перейдите в личный кабинет.';
+                        break;
+                }
+
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        resultKeyboard = shopBotMainMenuKeyboardEn;
+                        break;
+                    case "ru":
+                        resultKeyboard = shopBotMainMenuKeyboardRu;
+                        break;
+                }
+
+                return await shopBot.sendMessage(chatId, messageText, {
                     reply_markup: {
-                        keyboard: shopBotMainMenuKeyboard
+                        keyboard: resultKeyboard
                     }
                 });
             }
 
             try {
-                await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundUserOrNull.voicesAvaliable) - 1, chatId.toString()], function (err) {
-                    if (err) {
-                        return console.error(err.message);
-                    }
+                if (foundUserOrNull.status !== 'admin') {
+                    await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundUserOrNull.voicesAvaliable) - 1, chatId.toString()], function (err) {
+                        if (err) {
+                            return console.error(err.message);
+                        }
 
-                    console.log('language is updated');
-                });
+                        console.log('language is updated');
+                    });
+                }
 
                 await db.run('UPDATE shop_users SET totalVoicesRecorded = ? WHERE chatId = ?', [Number(foundUserOrNull.totalVoicesRecorded) + 1, chatId.toString()], function (err) {
                     if (err) {
@@ -86,20 +109,65 @@ export default async function handleShopBotVoiceMessage(db) {
                 throw new Error(e);
             }
 
-            const voiceId = modelName === "Лера" ? "wFyaValVXXUOvVMKrn4K" : '6CzwEjVC4rBP2a3QLCH0';
+            let voiceId;
+            let voice_setting;
 
-            const voice_setting = modelName === "Лера" ? {
-                stability: 0.54,
-                similarity_boost: 0.48,
-                style: 0.2,
-                use_speaker_boost: true
+            switch (modelName) {
+                case "Лера": {
+                    voiceId = "wFyaValVXXUOvVMKrn4K";
+                    voice_setting = {
+                        stability: 0.54,
+                        similarity_boost: 0.48,
+                        style: 0.2,
+                        use_speaker_boost: true
 
-            } : {
-                stability: 0.32,
-                similarity_boost: 0.28,
-                style: 0.2,
-                use_speaker_boost: true
+                    };
+                    break;
+                }
 
+                case "Анна": {
+                    voiceId = '6CzwEjVC4rBP2a3QLCH0';
+                    voice_setting = {
+                        stability: 0.32,
+                        similarity_boost: 0.28,
+                        style: 0.2,
+                        use_speaker_boost: true
+                    };
+                    break;
+                }
+
+                case 'Lera': {
+                    voiceId = '2rJo4BNbDooc3q89IWVH';
+                    voice_setting = {
+                        stability: 0.5,
+                        similarity_boost: 0.75,
+                        style: 0,
+                        use_speaker_boost: true
+                    };
+                    break;
+                }
+
+                case 'Ann': {
+                    voiceId = 'BSHBic1jFUy7dqyXEdTY';
+                    voice_setting = {
+                        stability: 0.5,
+                        similarity_boost: 0.75,
+                        style: 0,
+                        use_speaker_boost: true
+                    };
+                    break;
+                }
+
+                default: {
+                    voiceId = '6CzwEjVC4rBP2a3QLCH0';
+                    voice_setting = {
+                        stability: 0.32,
+                        similarity_boost: 0.28,
+                        style: 0.2,
+                        use_speaker_boost: true
+                    };
+                    break;
+                }
             }
 
             const fileId = msg.voice.file_id;
