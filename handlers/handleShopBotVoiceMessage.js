@@ -53,10 +53,28 @@ export default async function handleShopBotVoiceMessage(db) {
         let messageText = '';
         let resultKeyboard;
 
+        const voiceDuration = msg.voice.duration; // duration is in seconds
+
+        console.log(`Received a voice message with duration: ${voiceDuration} seconds`);
+
         if (voiceMessageToVoiceListener.has(chatId.toString())) {
             const modelName = voiceMessageToVoiceListener.get(chatId.toString());
             if (!modelName) {
                 return 0;
+            }
+
+            if (voiceDuration > 15) { // example: limit to 60 seconds
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = 'The voice message is too long. Please record a voice message that will be shorter than 20 seconds.';
+
+                        break;
+                    case "ru":
+                        messageText = 'Голосовое сообщение слишком длинное. Пожалуйста, запишите голосовое сообщение короче 20 секунд.';
+                        break;
+                }
+
+                return await shopBot.sendMessage(chatId, messageText);
             }
 
             if (foundUserOrNull.voicesAvaliable <= 0 && foundUserOrNull.status !== 'admin') {
@@ -139,10 +157,10 @@ export default async function handleShopBotVoiceMessage(db) {
                 case 'Lera': {
                     voiceId = '2rJo4BNbDooc3q89IWVH';
                     voice_setting = {
-                        stability: 0.5,
-                        similarity_boost: 0.75,
-                        style: 0,
-                        use_speaker_boost: true
+                        stability: 0.3, // Adds natural variability to make it less robotic
+                        similarity_boost: 0.85, // Ensures high similarity to the natural human voice
+                        style: 0.5, // Adds expressiveness for conversational tone
+                        use_speaker_boost: true // Retains the natural nuances of the voice
                     };
                     break;
                 }
@@ -150,10 +168,10 @@ export default async function handleShopBotVoiceMessage(db) {
                 case 'Ann': {
                     voiceId = 'BSHBic1jFUy7dqyXEdTY';
                     voice_setting = {
-                        stability: 0.5,
-                        similarity_boost: 0.75,
-                        style: 0,
-                        use_speaker_boost: true
+                        stability: 0.3, // Adds natural variability to make it less robotic
+                        similarity_boost: 0.85, // Ensures high similarity to the natural human voice
+                        style: 0.5, // Adds expressiveness for conversational tone
+                        use_speaker_boost: true // Retains the natural nuances of the voice
                     };
                     break;
                 }

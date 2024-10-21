@@ -1063,6 +1063,20 @@ export default async function handleShopBotMessage(db) {
                 return 0;
             }
 
+            if (text.length > 200) {
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = "The text exceeds the maximum allowed number of characters (200). Please send a shorter text.";
+
+                        break;
+                    case "ru":
+                        messageText = 'Текст превышает максимально допустимое количество символов (200). Пожалуйста, отправьте текст короче.';
+                        break;
+                }
+                
+                return await shopBot.sendMessage(chatId, messageText);
+            }
+
             if (foundUserOrNull.voicesAvaliable <= 0 && foundUserOrNull.status !== 'admin') {
                 textMessageToVoiceListener.delete(chatId.toString());
                 switch (foundUserOrNull.language) {
