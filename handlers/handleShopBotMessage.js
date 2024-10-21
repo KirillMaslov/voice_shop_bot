@@ -114,7 +114,7 @@ export default async function handleShopBotMessage(db) {
             })
         }
 
-        // const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
+        const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
 
         if (chatMembership.status === 'left') {
             if (text !== '/start') {
