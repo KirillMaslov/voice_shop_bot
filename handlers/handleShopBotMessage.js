@@ -65,7 +65,7 @@ export default async function handleShopBotMessage(db) {
             if (text === '/start') {
                 return 0;
             }
-            
+
             return await shopBot.sendMessage(chatId, 'Вы не зарегистрированы в бота. Нажмите команду /start');
         }
 
@@ -80,7 +80,7 @@ export default async function handleShopBotMessage(db) {
                     if (err) {
                         return console.error(err.message);
                     }
-    
+
                     console.log('language is updated');
                 });
             } catch (e) {
@@ -687,11 +687,14 @@ export default async function handleShopBotMessage(db) {
                 switch (foundUserOrNull.language) {
                     case 'en':
                         modelListener.set(chatId.toString(), "Text");
-                        messageText = 'You have chosen the section with male voices. 🎙️💪' + '\n' +
-                            '<b>Select a model:</b>' + '\n \n' +
-                            '‼️<b>Remember.</b>' + '\n' +
-                            `enter text with correct spelling and punctuation. Write numbers in words to maintain the precision of the speech. Use stickers to convey the right mood and enhance the effect of your message! 😊🔥`;
+                        // messageText = 'You have chosen the section with male voices. 🎙️💪' + '\n' +
+                        //     '<b>Select a model:</b>' + '\n \n' +
+                        //     '‼️<b>Remember.</b>' + '\n' +
+                        //     `enter text with correct spelling and punctuation. Write numbers in words to maintain the precision of the speech. Use stickers to convey the right mood and enhance the effect of your message! 😊🔥`;
 
+                        messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
+                            'You forgot something... I think you need to choose a model? ⚔️' + '\n\n' +
+                            'Do it on the panel below and get ready for your great deeds! 💪';
                         resultKeyboard = [
                             [{
                                 text: "Andrew",
@@ -702,10 +705,13 @@ export default async function handleShopBotMessage(db) {
                         break;
                     case "ru":
                         modelListener.set(chatId.toString(), "Текст");
-                        messageText = 'Вы выбрали раздел с мужскими голосами. 🎙️💪' + '\n' +
-                            '<b>Выберете модель:</b>' + '\n \n' +
-                            '‼️<b>Помните.</b>' + '\n' +
-                            `вводите текст с правильной орфографией и всеми знаками препинания. Цифры пишите прописью, чтобы сохранить точность звучания. Используйте стикеры, чтобы передать нужное настроение и усилить эффект вашего сообщения! 😊🔥`;
+                        messageText = `💥 <b>Эй, герой!</b>💥` + '\n' +
+                        'Ты кое-что забыл… По-моему, нужно выбрать модель? ⚔️' + '\n\n' +
+                        'Сделай это на панели ниже и приступай к своим великим подвигам! 💪';
+                        // messageText = 'Вы выбрали раздел с мужскими голосами. 🎙️💪' + '\n' +
+                        //     '<b>Выберете модель:</b>' + '\n \n' +
+                        //     '‼️<b>Помните.</b>' + '\n' +
+                        //     `вводите текст с правильной орфографией и всеми знаками препинания. Цифры пишите прописью, чтобы сохранить точность звучания. Используйте стикеры, чтобы передать нужное настроение и усилить эффект вашего сообщения! 😊🔥`;
                         resultKeyboard = [
                             [{
                                 text: "Андрей",
@@ -942,14 +948,17 @@ export default async function handleShopBotMessage(db) {
 
             switch (foundUserOrNull.language) {
                 case 'en': {
-                    const comment = text === 'Text' ?
-                        'Enter the text with correct spelling and all punctuation marks, and write numbers in words! 📜✍️' :
-                        'After selecting a model, record a voice message clearly, without background noise';
+                    messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
+                        'You forgot something... I think you need to choose a model? ⚔️' + '\n\n' +
+                        'Do it on the panel below and get ready for your great deeds! 💪';
+                    // const comment = text === 'Text' ?
+                    //     'Enter the text with correct spelling and all punctuation marks, and write numbers in words! 📜✍️' :
+                    //     'After selecting a model, record a voice message clearly, without background noise';
 
-                    messageText = `You have chosen conversion using ${text === 'Text' ? 'text' : 'voice'}.` + '\n' +
-                        '<b>Select a model:</b>' + '\n\n' +
-                        '‼️<b>Remember</b>' + '\n' +
-                        comment;
+                    // messageText = `You have chosen conversion using ${text === 'Text' ? 'text' : 'voice'}.` + '\n' +
+                    //     '<b>Select a model:</b>' + '\n\n' +
+                    //     '‼️<b>Remember</b>' + '\n' +
+                    //     comment;
 
                     resultKeyboard = [
                         [{
@@ -964,15 +973,18 @@ export default async function handleShopBotMessage(db) {
                 }
 
                 case 'ru': {
-                    const comment = text === 'Текст' ?
-                        'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
-                        'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне';
+                    messageText = `💥 <b>Эй, герой!</b>💥` + '\n' +
+                        'Ты кое-что забыл… По-моему, нужно выбрать модель? ⚔️' + '\n\n' +
+                        'Сделай это на панели ниже и приступай к своим великим подвигам! 💪';
 
+                    // const comment = text === 'Текст' ?
+                    // 'Текст вводите с верной орфографией и всеми знаками препинания, а цифры пишите буквами! 📜✍️' :
+                    // 'После выбора модели, запишите голосовое сообщение четко, без лишних звуков на фоне';
+                    // messageText = `Вы выбрали конвертацию с помощью ${text === 'Текст' ? 'текста': 'голоса'}.` + '\n' +
+                    //     '<b>Выберете модель:</b>' + '\n\n' +
+                    //     '‼️<b>Помните</b>' + '\n' +
+                    //     comment;
 
-                    messageText = `Вы выбрали конвертацию с помощью ${text === 'Текст' ? 'текста': 'голоса'}.` + '\n' +
-                        '<b>Выберете модель:</b>' + '\n\n' +
-                        '‼️<b>Помните</b>' + '\n' +
-                        comment;
 
                     resultKeyboard = [
                         [{
@@ -1073,7 +1085,7 @@ export default async function handleShopBotMessage(db) {
                         messageText = 'Текст превышает максимально допустимое количество символов (200). Пожалуйста, отправьте текст короче.';
                         break;
                 }
-                
+
                 return await shopBot.sendMessage(chatId, messageText);
             }
 
