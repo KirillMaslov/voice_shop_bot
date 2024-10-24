@@ -19,6 +19,7 @@ export const annaDescriptionEn = '⚡️ <b>Anna, a tender muse with a voice tha
 
 
 export const shopBotAdminCommands = 'Воспользуйся коммандами бота' + '\n \n' +
+'/tagsRefferalsStatistics - Статистика приходов с рекламных тегов' + '\n' +
 '/sendAdvertisingMessage - Сделать рассылку пользователям' + '\n' +
 '/statistic - Отображение статистики подписок пользователей' + '\n' + 
 '/changeBlockStatusUser - Изменить статус блокировки пользователя' + '\n' + 

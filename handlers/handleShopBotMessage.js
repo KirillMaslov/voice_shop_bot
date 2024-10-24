@@ -54,6 +54,7 @@ import getShopBotUserRefferalsCount from "../middlewares/getShopBotUserRefferals
 import getVoicesCosts from "../middlewares/getVoicesWithCost.js";
 import getVoicesToBuyByNumberFromDb from "../middlewares/getVoicesToBuyByNumberFromDb.js";
 import insertVoicesCountToBuyInDb from '../services/insertVoicesCountToBuyInDb.js';
+import getAllRefferalTagsList from '../middlewares/getAllRefferalTagsList.js';
 
 const CryptoBotClient = new CryptoBotAPI(cryptoBotAPIKey);
 const elevenlabs = new ElevenLabsClient({
@@ -68,11 +69,7 @@ export default async function handleShopBotMessage(db) {
         const foundUserOrNull = await getShopBotUserOrNullByChatId(chatId.toString(), db);
         // checking access
         if (!foundUserOrNull) {
-            if (text === '/start') {
-                return 0;
-            }
-
-            return await shopBot.sendMessage(chatId, 'Вы не зарегистрированы в бота. Нажмите команду /start');
+            return 0;
         }
 
         let messageText = '';
@@ -135,6 +132,7 @@ export default async function handleShopBotMessage(db) {
                 }
 
                 return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
                     reply_markup: {
                         inline_keyboard: [
                             [{
@@ -204,6 +202,39 @@ export default async function handleShopBotMessage(db) {
                             disable_web_page_preview: true
                         }
                     );
+                }
+
+                case '/tagsRefferalsStatistics': {
+                    const tagsArr = await getAllRefferalTagsList(db);
+
+                    const keyboard = [];
+
+                    for (let i = 0; i < 5; i++) {
+                        if (tagsArr[i]) {
+                            keyboard.push([{
+                                text: `${tagsArr[i].tag} - пришло людей ${tagsArr[i].count}`,
+                                callback_data: `empty`
+                            }])
+                        }
+                    }
+
+                    if (tagsArr.length > 5) {
+                        keyboard.push([{
+                            text: `>>`,
+                            callback_data: `changeStatisticOfTagsArr_1`
+                        }])
+                    }
+
+                    return await shopBot.sendMessage(chatId, 'Внизу собраны все теги которые вы создавали пользователям', {
+                        reply_markup: {
+                            inline_keyboard: tagsArr.length ? keyboard : [
+                                [{
+                                    text: "В боте нету тегов",
+                                    callback_data: 'empty'
+                                }]
+                            ]
+                        }
+                    });
                 }
 
                 case '/editVoicesCostToBuy': {
@@ -1218,7 +1249,7 @@ export default async function handleShopBotMessage(db) {
                             stability: 0.7,
                             similarity_boost: 0.76,
                             style: 0.32,
-                            use_speaker_boost: false
+                            use_speaker_boost: true
                         }
                     };
                     break;

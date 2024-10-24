@@ -29,6 +29,10 @@ export default async function handleShopBotCallbackQuery(db) {
         let messageText = '';
         let resultKeyboard = shopBotMainMenuKeyboardRu;
 
+        if (query.data === 'empty') {
+            return await shopBot.answerCallbackQuery(queryId);
+        }
+
         if (query.data === 'cancel') {
             await shopBot.answerCallbackQuery(queryId, {
                 text: `Вы успешно отменили удаление числа голосовых`,
@@ -203,6 +207,54 @@ export default async function handleShopBotCallbackQuery(db) {
                 show_alert: true,
             });
 
+        }
+
+        if (query.data.includes('changeStatisticOfTagsArr')) {
+            const iterator = Number(data.split('_')[1]);
+            const cycleNum = iterator * 5;
+
+            const tagsArr = await getAllRefferalTagsList(db);
+
+            const keyboard = [];
+
+            for (let i = cycleNum; i < cycleNum + 5; i++) {
+                if (tagsArr[i]) {
+                    keyboard.push([{
+                        text: `${tagsArr[i].tag} - пришло людей ${tagsArr[i].count}`,
+                        callback_data: `empty`
+                    }])
+                }
+            }
+
+            const navigationButtons = [];
+
+            if (iterator > 0) {
+                navigationButtons.push({
+                    text: `<<`,
+                    callback_data: `changeStatisticOfTagsArr_${iterator - 1}`
+                })
+            }
+
+            if (tagsArr.length > cycleNum + 5) {
+                navigationButtons.push({
+                    text: `>>`,
+                    callback_data: `changeStatisticOfTagsArr_${iterator + 1}`
+                });
+            }
+
+            keyboard.push(navigationButtons);
+
+            await shopBot.editMessageReplyMarkup({
+                inline_keyboard: tagsArr.length ? keyboard : [
+                    [{
+                        text: "В боте нету тегов",
+                        callback_data: 'empty'
+                    }]
+                ]
+            }, {
+                chat_id: chatId,
+                message_id: messageId
+            });
         }
 
         if (query.data.includes('checkCryptoBotPayment')) {

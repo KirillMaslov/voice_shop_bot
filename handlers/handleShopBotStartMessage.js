@@ -4,6 +4,7 @@ import {
     channelName,
     creatorNick
 } from "../config.js";
+import getBotRefferalsCountByTag from "../middlewares/getBotRefferalsCountByTag.js";
 import getShopBotUserOrNullByChatId from "../middlewares/getShopBotUserOrNullByChatId.js";
 import getShopBotUserRefferalsCount from "../middlewares/getShopBotUserRefferalsCount.js";
 import insertNewShopBotUserInDb from "../services/insertNewShopBotUserInDb.js";
@@ -18,35 +19,69 @@ export default async function handleShopBotStartMessage(db) {
         const chatId = msg.chat.id;
         const referral_code = match[1];
         const foundUserOrNull = await getShopBotUserOrNullByChatId(chatId.toString(), db);
-        console.log(chatId);
 
         let messageText = '';
         let resultKeyboard = shopBotMainMenuKeyboardRu;
 
         const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
 
-        console.log(chatMembership);
-
         if (!foundUserOrNull) {
             if (referral_code) {
                 const refferalChatId = referral_code.toString();
 
+                console.log('found refferal text', refferalChatId);
+
                 try {
                     const foundRefferal = await getShopBotUserOrNullByChatId(refferalChatId, db);
 
+                    console.log('found refferal ', foundRefferal);
+
                     if (foundRefferal) {
                         const refferalsCount = await getShopBotUserRefferalsCount(chatId.toString(), db);
-                        console.log(refferalsCount);
+                        console.log('refferalsCount', refferalsCount);
                         const newRefferalsNum = Number(refferalsCount.usersNum) + 1;
 
                         if (newRefferalsNum % 5 === 0) {
-                            await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundUserOrNull.voicesAvaliable) + 3, refferalChatId], function (err) {
+                            await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundRefferal.voicesAvaliable) + 3, refferalChatId], function (err) {
                                 if (err) {
                                     return console.error(err.message);
                                 }
 
                                 console.log('voicesAvaliable is updated');
                             });
+                        } 
+                    } else {
+                        const refferalsCountByTag = await getBotRefferalsCountByTag(refferalChatId, db);
+
+                        if (refferalsCountByTag) {
+                            try {
+                                await db.run('UPDATE refferalTags SET count = ? WHERE tag = ?', [Number(refferalsCountByTag.count) + 1, refferalChatId], function (err) {
+                                    if (err) {
+                                        return console.error(err.message);
+                                    }
+            
+                                    console.log('language is updated');
+                                });
+                            } catch (e) {
+                                throw new Error(e);
+                            }
+                        } else {
+                            try {
+                                const sql = `
+                                    INSERT INTO refferalTags (
+                                        tag
+                                    )
+                                    VALUES(?)
+                                `;
+                    
+                                db.run(sql, [refferalChatId], function (err) {
+                                    if (err) {
+                                        return console.log(err);
+                                    }
+                                });
+                            } catch (e) {
+                                throw new Error(e);
+                            }
                         }
                     }
                 } catch (e) {
