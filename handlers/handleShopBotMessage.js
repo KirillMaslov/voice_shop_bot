@@ -25,7 +25,9 @@ import {
     andreyDescriptionEn,
     leraDescriptionEn,
     annaDescriptionEn,
-    dmitriyDescriptionRu
+    dmitriyDescriptionRu,
+    sophiaDescribtionRu,
+    alinaDescribtionRu
 } from "../config.js";
 import shopBot from "../utils/shopBot.js";
 import {
@@ -92,9 +94,9 @@ export default async function handleShopBotMessage(db) {
             }
         }
 
-        const voices = await elevenlabs.voices.getAll();
+        // const voices = await elevenlabs.voices.getAll();
 
-        console.log('Available voices:', voices);
+        // console.log('Available voices:', voices);
 
         if (foundUserOrNull.isBlocked) {
             switch (foundUserOrNull.language) {
@@ -752,9 +754,9 @@ export default async function handleShopBotMessage(db) {
                             `вводите текст с правильной орфографией и всеми знаками препинания. Цифры пишите прописью, чтобы сохранить точность звучания. Используйте стикеры, чтобы передать нужное настроение и усилить эффект вашего сообщения! 😊🔥`;
                         resultKeyboard = [
                             [{
-                                text: "Андрей",
+                                text: "Меллстрой 🤑",
                             }, {
-                                text: "Дмитрий",
+                                text: "Дмитрий 🏎️",
                             }, {
                                 text: '↩️ Назад'
                             }]
@@ -1029,13 +1031,13 @@ export default async function handleShopBotMessage(db) {
 
                     resultKeyboard = [
                         [{
-                            text: "Лера"
+                            text: "Лера 👱‍♀️"
                         }, {
-                            text: 'Анна'
+                            text: 'Анна 👩🏻‍💼'
                         }], [{
-                            text: "София"
+                            text: "София 👩🏻"
                         }, {
-                            text: 'Алина'
+                            text: 'Алина🤵🏻‍♀️'
                         }, {
                             text: '↩️ Назад'
                         }]
@@ -1061,7 +1063,7 @@ export default async function handleShopBotMessage(db) {
         if (modelListener.has(chatId.toString())) {
             const messageType = modelListener.get(chatId.toString());
 
-            if (!["Лера", "София", "Алина", 'Дмитрий', 'Анна', 'Андрей', "Lera", 'Ann', 'Andrew'].includes(text)) {
+            if (!["Лера 👱‍♀️", "София 👩🏻", "Алина🤵🏻‍♀️", 'Дмитрий 🏎️', 'Анна 👩🏻‍💼', 'Меллстрой 🤑', "Lera", 'Ann', 'Andrew'].includes(text)) {
                 switch (foundUserOrNull.language) {
                     case 'en': {
                         messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
@@ -1104,9 +1106,13 @@ export default async function handleShopBotMessage(db) {
 
                         resultKeyboard = [
                             [{
-                                text: "Лера"
+                                text: "Лера 👱‍♀️"
                             }, {
-                                text: 'Анна'
+                                text: 'Анна 👩🏻‍💼'
+                            }], [{
+                                text: "София 👩🏻"
+                            }, {
+                                text: 'Алина🤵🏻‍♀️'
                             }, {
                                 text: '↩️ Назад'
                             }]
@@ -1161,7 +1167,7 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case 'Андрей': {
+                case 'Меллстрой 🤑': {
                     age = 22;
                     msgText = andreyDescriptionRu;
                     imageFileName = 'mellstroy';
@@ -1169,7 +1175,7 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case 'Дмитрий': {
+                case 'Дмитрий 🏎️': {
                     age = 20;
                     msgText = dmitriyDescriptionRu;
                     imageFileName = 'malePhoto';
@@ -1177,7 +1183,7 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case "Лера": {
+                case "Лера 👱‍♀️": {
                     age = 18;
                     msgText = leraDescribtionRu;
                     imageFileName = 'Lera';
@@ -1185,7 +1191,7 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case 'Анна': {
+                case 'Анна 👩🏻‍💼': {
                     age = 21;
                     msgText = annaDescribtionRu;
                     imageFileName = 'Anna';
@@ -1193,17 +1199,17 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case "София": {
-                    age = 23;
-                    msgText = annaDescribtionRu;
+                case "София 👩🏻": {
+                    age = 25;
+                    msgText = sophiaDescribtionRu;
                     imageFileName = 'Sophia';
 
                     break;
                 }
 
-                case "Алина": {
-                    age = 17;
-                    msgText = annaDescribtionRu;
+                case "Алина🤵🏻‍♀️": {
+                    age = 26;
+                    msgText = alinaDescribtionRu;
                     imageFileName = 'Alina';
 
                     break;
@@ -1324,21 +1330,21 @@ export default async function handleShopBotMessage(db) {
             let speaker;
 
             switch (modelName) {
-                case 'Андрей': {
+                case 'Меллстрой 🤑': {
                     speaker = {
                         voice_id: 'mSALsmqUkXXl19PTIubg',
                         voice: 'Andrey B',
                         voice_settings: {
                             stability: 0.7,
                             similarity_boost: 0.76,
-                            style: 0.32,
+                            style: 0.48,
                             use_speaker_boost: true
                         }
                     };
                     break;
                 }
 
-                case "Дмитрий": {
+                case "Дмитрий 🏎️": {
                     speaker = {
                         voice_id: 'm2gtxNsYBaIRqPBA5vU5',
                         voice: 'Oleg Krugliak ',
@@ -1394,7 +1400,7 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case "Лера": {
+                case "Лера 👱‍♀️": {
                     speaker = {
                         voice_id: "wFyaValVXXUOvVMKrn4K", // Use the correct voice ID (Anna)
                         voice: "Anna",
@@ -1408,7 +1414,7 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case "София": {
+                case "София 👩🏻": {
                     speaker = {
                         voice_id: '2PXiyMhp58vnbi8Zt6VZ', // Use the correct voice ID (Anna)
                         voice: 'Sophia T',
@@ -1423,7 +1429,7 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
-                case "Алина": {
+                case "Алина🤵🏻‍♀️": {
                     speaker = {
                         voice_id: 'vAS7flXt8xZlL9mlhwFd', // Use the correct voice ID (Anna)
                         voice: 'Alina H',
