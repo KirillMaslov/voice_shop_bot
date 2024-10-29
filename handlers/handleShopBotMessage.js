@@ -24,7 +24,8 @@ import {
     annaDescribtionRu,
     andreyDescriptionEn,
     leraDescriptionEn,
-    annaDescriptionEn
+    annaDescriptionEn,
+    dmitriyDescriptionRu
 } from "../config.js";
 import shopBot from "../utils/shopBot.js";
 import {
@@ -91,9 +92,9 @@ export default async function handleShopBotMessage(db) {
             }
         }
 
-        // const voices = await elevenlabs.voices.getAll();
+        const voices = await elevenlabs.voices.getAll();
 
-        // console.log('Available voices:', voices);
+        console.log('Available voices:', voices);
 
         if (foundUserOrNull.isBlocked) {
             switch (foundUserOrNull.language) {
@@ -753,6 +754,8 @@ export default async function handleShopBotMessage(db) {
                             [{
                                 text: "Андрей",
                             }, {
+                                text: "Дмитрий",
+                            }, {
                                 text: '↩️ Назад'
                             }]
                         ];
@@ -1029,6 +1032,10 @@ export default async function handleShopBotMessage(db) {
                             text: "Лера"
                         }, {
                             text: 'Анна'
+                        }], [{
+                            text: "София"
+                        }, {
+                            text: 'Алина'
                         }, {
                             text: '↩️ Назад'
                         }]
@@ -1054,7 +1061,7 @@ export default async function handleShopBotMessage(db) {
         if (modelListener.has(chatId.toString())) {
             const messageType = modelListener.get(chatId.toString());
 
-            if (!["Лера", 'Анна', 'Андрей', "Lera", 'Ann', 'Andrew'].includes(text)) {
+            if (!["Лера", "София", "Алина", 'Дмитрий', 'Анна', 'Андрей', "Lera", 'Ann', 'Andrew'].includes(text)) {
                 switch (foundUserOrNull.language) {
                     case 'en': {
                         messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
@@ -1125,11 +1132,88 @@ export default async function handleShopBotMessage(db) {
                 voiceMessageToVoiceListener.set(chatId.toString(), text);
             }
 
+            let age = 19;
+            let msgText = andreyDescriptionRu;
+            let imageFileName = 'malePhoto';
+
+            switch (text) {
+                case 'Andrey': {
+                    age = 20;
+                    msgText = andreyDescriptionEn;
+                    imageFileName = 'malePhoto';
+
+                    break;
+                }
+
+                case "Lera": {
+                    age = 18;
+                    msgText = leraDescriptionEn;
+                    imageFileName = 'Lera';
+
+                    break;
+                }
+
+                case "Ann": {
+                    age = 21;
+                    msgText = annaDescriptionEn;
+                    imageFileName = 'Anna';
+
+                    break;
+                }
+
+                case 'Андрей': {
+                    age = 22;
+                    msgText = andreyDescriptionRu;
+                    imageFileName = 'mellstroy';
+
+                    break;
+                }
+
+                case 'Дмитрий': {
+                    age = 20;
+                    msgText = dmitriyDescriptionRu;
+                    imageFileName = 'malePhoto';
+
+                    break;
+                }
+
+                case "Лера": {
+                    age = 18;
+                    msgText = leraDescribtionRu;
+                    imageFileName = 'Lera';
+
+                    break;
+                }
+
+                case 'Анна': {
+                    age = 21;
+                    msgText = annaDescribtionRu;
+                    imageFileName = 'Anna';
+
+                    break;
+                }
+
+                case "София": {
+                    age = 23;
+                    msgText = annaDescribtionRu;
+                    imageFileName = 'Sophia';
+
+                    break;
+                }
+
+                case "Алина": {
+                    age = 17;
+                    msgText = annaDescribtionRu;
+                    imageFileName = 'Alina';
+
+                    break;
+                }
+            }
+
             switch (foundUserOrNull.language) {
                 case 'en': {
-                    const age = text === "Lera" ? 18 : text === 'Ann' ? 21 : 20;
                     messageText = `<b>${text}</b>. ${age} years old` + '\n \n' +
-                        `${text === 'Andrey' ? andreyDescriptionEn : text === "Lera" ? leraDescriptionEn : annaDescriptionEn}` + '\n \n' +
+                        `${msgText}` + '\n \n' +
                         `Send the ${messageType.toLowerCase()} that you want to turn into a voice message, and it will sound like a hymn worthy of kings! 🏛️` + '\n' +
                         'Or press “↩️ <b>Back</b>” if your choice is not yet decided. ⚔️';
 
@@ -1142,9 +1226,8 @@ export default async function handleShopBotMessage(db) {
                 }
 
                 case 'ru': {
-                    const age = text === "Лера" ? 18 : text === 'Анна' ? 21 : 20;
                     messageText = `<b>${text}</b>. ${age} лет` + '\n \n' +
-                        `${text === 'Андрей' ? andreyDescriptionRu : text === "Лера" ? leraDescribtionRu : annaDescribtionRu}` + '\n \n' +
+                        `${msgText}` + '\n \n' +
                         `Отправьте ${messageType.toLowerCase()}, который хочешь превратить в голосовое послание, и оно прозвучит, словно гимн, достойный царей! 🏛️` + '\n' +
                         'Или нажми “↩️ <b>Назад</b>”, если твой выбор пока не определён. ⚔️';
 
@@ -1157,7 +1240,7 @@ export default async function handleShopBotMessage(db) {
                 }
             }
 
-            return await shopBot.sendPhoto(chatId, `./images/${(text === 'Андрей' || text === 'Andrew') ? 'malePhoto': (text === "Лера" || text === 'Lera') ? 'Lera' : 'Anna'}.jpg`, {
+            return await shopBot.sendPhoto(chatId, `./images/${imageFileName}.jpg`, {
                 caption: messageText,
                 parse_mode: "HTML",
                 reply_markup: {
@@ -1243,6 +1326,20 @@ export default async function handleShopBotMessage(db) {
             switch (modelName) {
                 case 'Андрей': {
                     speaker = {
+                        voice_id: 'mSALsmqUkXXl19PTIubg',
+                        voice: 'Andrey B',
+                        voice_settings: {
+                            stability: 0.7,
+                            similarity_boost: 0.76,
+                            style: 0.32,
+                            use_speaker_boost: true
+                        }
+                    };
+                    break;
+                }
+
+                case "Дмитрий": {
+                    speaker = {
                         voice_id: 'm2gtxNsYBaIRqPBA5vU5',
                         voice: 'Oleg Krugliak ',
                         voice_settings: {
@@ -1308,6 +1405,36 @@ export default async function handleShopBotMessage(db) {
                             use_speaker_boost: true
                         }
                     };
+                    break;
+                }
+
+                case "София": {
+                    speaker = {
+                        voice_id: '2PXiyMhp58vnbi8Zt6VZ', // Use the correct voice ID (Anna)
+                        voice: 'Sophia T',
+                        voice_settings: {
+                            stability: 0.54,
+                            similarity_boost: 0.48,
+                            style: 0.2,
+                            use_speaker_boost: true
+                        }
+                    };
+
+                    break;
+                }
+
+                case "Алина": {
+                    speaker = {
+                        voice_id: 'vAS7flXt8xZlL9mlhwFd', // Use the correct voice ID (Anna)
+                        voice: 'Alina H',
+                        voice_settings: {
+                            stability: 0.54,
+                            similarity_boost: 0.48,
+                            style: 0.2,
+                            use_speaker_boost: true
+                        }
+                    };
+
                     break;
                 }
 
