@@ -131,7 +131,7 @@ export default async function handleShopBotVoiceMessage(db) {
             let voice_setting;
 
             switch (modelName) {
-                case "Лера": {
+                case "Лера 👱‍♀️": {
                     voiceId = "wFyaValVXXUOvVMKrn4K";
                     voice_setting = {
                         stability: 0.54,
@@ -154,7 +154,7 @@ export default async function handleShopBotVoiceMessage(db) {
                     break;
                 }
 
-                case "Алина": {
+                case "Алина🤵🏻‍♀️": {
                     voiceId = 'vAS7flXt8xZlL9mlhwFd';
                     voice_setting = {
                         stability: 0.32,
@@ -165,7 +165,7 @@ export default async function handleShopBotVoiceMessage(db) {
                     break;
                 }
 
-                case "София": {
+                case "София 👩🏻": {
                     voiceId = '2PXiyMhp58vnbi8Zt6VZ';
                     voice_setting = {
                         stability: 0.32,

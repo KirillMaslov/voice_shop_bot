@@ -23,7 +23,7 @@ export default async function handleShopBotStartMessage(db) {
         let messageText = '';
         let resultKeyboard = shopBotMainMenuKeyboardRu;
 
-        const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
+        // const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
 
         if (!foundUserOrNull) {
             if (referral_code) {
@@ -130,34 +130,34 @@ export default async function handleShopBotStartMessage(db) {
             })
         }
 
-        if (chatMembership.status === 'left') {
-            switch (foundUserOrNull.language) {
-                case 'en':
-                    messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
-                        '❗️ <b>To use the bot, subscribe to the channels</b> 👇🏻';
-                    break;
-                case "ru":
-                    messageText = '🍓 <b>Ты ещё не подписан на каналы</b>!' + '\n \n' +
-                        '❗️ <b>Для использования бота подпишись на каналы</b> 👇🏻';
-                    break;
-            }
+        // if (chatMembership.status === 'left') {
+        //     switch (foundUserOrNull.language) {
+        //         case 'en':
+        //             messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
+        //                 '❗️ <b>To use the bot, subscribe to the channels</b> 👇🏻';
+        //             break;
+        //         case "ru":
+        //             messageText = '🍓 <b>Ты ещё не подписан на каналы</b>!' + '\n \n' +
+        //                 '❗️ <b>Для использования бота подпишись на каналы</b> 👇🏻';
+        //             break;
+        //     }
 
-            return await shopBot.sendMessage(chatId, messageText, {
-                parse_mode: "HTML",
-                reply_markup: {
-                    inline_keyboard: [
-                        [{
-                            text: channelName,
-                            url: channelLink
-                        }],
-                        [{
-                            text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
-                            callback_data: 'check_subscription'
-                        }]
-                    ]
-                }
-            })
-        }
+        //     return await shopBot.sendMessage(chatId, messageText, {
+        //         parse_mode: "HTML",
+        //         reply_markup: {
+        //             inline_keyboard: [
+        //                 [{
+        //                     text: channelName,
+        //                     url: channelLink
+        //                 }],
+        //                 [{
+        //                     text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
+        //                     callback_data: 'check_subscription'
+        //                 }]
+        //             ]
+        //         }
+        //     })
+        // }
 
         await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIpnDmZuToviJWSuPB_N-oVGbci7IQACNFkAAjiScEjRPtOS1bNCfTYE");
 
