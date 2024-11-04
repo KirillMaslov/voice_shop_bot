@@ -120,39 +120,39 @@ export default async function handleShopBotMessage(db) {
             })
         }
 
-        // const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
+        const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
 
-        // if (chatMembership.status === 'left') {
-        //     if (text !== '/start') {
-        //         switch (foundUserOrNull.language) {
-        //             case 'en':
-        //                 messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
-        //                     '❗️ <b>To use the bot, subscribe to the channels</b> 👇🏻';
-        //             case "ru":
-        //                 messageText = '🍓 <b>Ты ещё не подписан на каналы</b>!' + '\n \n' +
-        //                     '❗️ <b>Для использования бота подпишись на каналы</b> 👇🏻';
-        //                 break;
-        //         }
+        if (chatMembership.status === 'left') {
+            if (text !== '/start') {
+                switch (foundUserOrNull.language) {
+                    case 'en':
+                        messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
+                            '❗️ <b>To use the bot, subscribe to the channels</b> 👇🏻';
+                    case "ru":
+                        messageText = '🍓 <b>Ты ещё не подписан на каналы</b>!' + '\n \n' +
+                            '❗️ <b>Для использования бота подпишись на каналы</b> 👇🏻';
+                        break;
+                }
 
-        //         return await shopBot.sendMessage(chatId, messageText, {
-        //             parse_mode: "HTML",
-        //             reply_markup: {
-        //                 inline_keyboard: [
-        //                     [{
-        //                         text: channelName,
-        //                         url: channelLink
-        //                     }],
-        //                     [{
-        //                         text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
-        //                         callback_data: 'check_subscription'
-        //                     }]
-        //                 ]
-        //             }
-        //         })
-        //     }
+                return await shopBot.sendMessage(chatId, messageText, {
+                    parse_mode: "HTML",
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{
+                                text: channelName,
+                                url: channelLink
+                            }],
+                            [{
+                                text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
+                                callback_data: 'check_subscription'
+                            }]
+                        ]
+                    }
+                })
+            }
 
-        //     return 0;
-        // } // end of checking Access
+            return 0;
+        } // end of checking Access
 
 
         // check if user is admin
