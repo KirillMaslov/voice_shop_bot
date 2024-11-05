@@ -1,4 +1,4 @@
-export const shopBotToken = '7767958409:AAG6_zgGKl4r8sWXaG8wURU6EHxQ_D9Ed6I'; // 7767958409:AAG6_zgGKl4r8sWXaG8wURU6EHxQ_D9Ed6I
+export const shopBotToken = '7767958409:AAG6_zgGKl4r8sWXaG8wURU6EHxQ_D9Ed6I'; 
 export const cryptoBotAPIKey = '280817:AATIUAccqiW5PUD7ndekcaw66KW6fRnmbRs'; 
 export const elevenLabsApiKey = 'sk_f1eefad672cd4b9d719cd7881deebee8706fdb994b048a04'; //  sk_3f85656f01f75cbf56c8a66666e79d504b8bd356351cd0d2
 export const channelChatId = '-1002381313267';
@@ -9,6 +9,8 @@ export const techSuppportBotLink = 'https://t.me/helpHardcore_bot';
 export const shopRulesLink = 'https://telegra.ph/PRAVILA-LAVKI-HARDA-08-18';
 export const shopReceiveGoodLink = 'https://telegra.ph/KAK-POLUCHIT-TOVAR-08-18';
 export const creatorNick = 'AID_ex';
+
+export const pegasBotLink = 'https://t.me/PeggasBot';
 
 export const andreyDescriptionRu = '⚡️ <b>Андрей Бурим (меллстрой)🤑, легендарный стример!!</b> 🎙️🔥';
 export const dmitriyDescriptionRu = '⚡️ <b>Дмитрий🏎️, герой с мужественным голосом, который звучит как эхо Олимпа!</b> 🎙️🔥';

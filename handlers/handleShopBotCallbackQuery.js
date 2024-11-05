@@ -15,6 +15,7 @@ import CryptoBotAPI from 'crypto-bot-api';
 import shopBot from "../utils/shopBot.js";
 import getShopBotAdminsFromDb from "../middlewares/getShopBotAdminsFromDb.js";
 import getShopBotUsersCountFromDb from "../middlewares/getShopBotUsersCountFromDb.js";
+import getRoundBotUserOrNullByChatId from "../middlewares/getRoundBotUserOrNullByChatId.js";
 
 
 const CryptoBotClient = new CryptoBotAPI(cryptoBotAPIKey);
@@ -153,6 +154,7 @@ export default async function handleShopBotCallbackQuery(db) {
 
         if (query.data === 'check_subscription') {
             const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
+            const roundBotMembership = await getRoundBotUserOrNullByChatId(chatId.toString());
 
             const avaliableNumber = foundUserOrNull.voicesAvaliable;
 
@@ -174,7 +176,7 @@ export default async function handleShopBotCallbackQuery(db) {
                     break;
             }
 
-            if (chatMembership.status !== 'left') {
+            if (chatMembership.status !== 'left' && roundBotMembership) {
                 switch (foundUserOrNull.language) {
                     case 'en':
                         alertText = 'You have successfully subscribed to the channel';

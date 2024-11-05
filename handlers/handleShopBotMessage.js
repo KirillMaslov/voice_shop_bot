@@ -27,7 +27,8 @@ import {
     annaDescriptionEn,
     dmitriyDescriptionRu,
     sophiaDescribtionRu,
-    alinaDescribtionRu
+    alinaDescribtionRu,
+    pegasBotLink
 } from "../config.js";
 import shopBot from "../utils/shopBot.js";
 import {
@@ -58,6 +59,7 @@ import getVoicesCosts from "../middlewares/getVoicesWithCost.js";
 import getVoicesToBuyByNumberFromDb from "../middlewares/getVoicesToBuyByNumberFromDb.js";
 import insertVoicesCountToBuyInDb from '../services/insertVoicesCountToBuyInDb.js';
 import getAllRefferalTagsList from '../middlewares/getAllRefferalTagsList.js';
+import getRoundBotUserOrNullByChatId from '../middlewares/getRoundBotUserOrNullByChatId.js';
 
 const CryptoBotClient = new CryptoBotAPI(cryptoBotAPIKey);
 const elevenlabs = new ElevenLabsClient({
@@ -71,7 +73,7 @@ export default async function handleShopBotMessage(db) {
 
         const foundUserOrNull = await getShopBotUserOrNullByChatId(chatId.toString(), db);
         // checking access
-        if (!foundUserOrNull) {
+        if (!foundUserOrNull || text === '/start') {
             return 0;
         }
 
@@ -122,37 +124,43 @@ export default async function handleShopBotMessage(db) {
 
         const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
 
-        if (chatMembership.status === 'left') {
-            if (text !== '/start') {
-                switch (foundUserOrNull.language) {
-                    case 'en':
-                        messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
-                            '❗️ <b>To use the bot, subscribe to the channels</b> 👇🏻';
-                    case "ru":
-                        messageText = '🍓 <b>Ты ещё не подписан на каналы</b>!' + '\n \n' +
-                            '❗️ <b>Для использования бота подпишись на каналы</b> 👇🏻';
-                        break;
-                }
+        const roundBotMembership = await getRoundBotUserOrNullByChatId(chatId.toString())
 
-                return await shopBot.sendMessage(chatId, messageText, {
-                    parse_mode: "HTML",
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{
-                                text: channelName,
-                                url: channelLink
-                            }],
-                            [{
-                                text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
-                                callback_data: 'check_subscription'
-                            }]
-                        ]
-                    }
-                })
+        console.log('chatMembership: ', chatMembership);
+        console.log('roundBotMembership: ', roundBotMembership);
+
+        if (chatMembership.status === 'left' || !roundBotMembership) {
+            switch (foundUserOrNull.language) {
+                case 'en':
+                    messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
+                        '❗️ <b>To use the bot, subscribe to the channels</b> 👇🏻';
+                    break;
+                case "ru":
+                    messageText = '🍓 <b>Ты ещё не подписан на каналы</b>!' + '\n \n' +
+                        '❗️ <b>Для использования бота подпишись на каналы</b> 👇🏻';
+                    break;
             }
 
-            return 0;
-        } // end of checking Access
+            return await shopBot.sendMessage(chatId, messageText, {
+                parse_mode: "HTML",
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: channelName,
+                            url: channelLink
+                        }, {
+                            text: 'Pegas Bot', 
+                            url: pegasBotLink
+                        }],
+                        [{
+                            text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
+                            callback_data: 'check_subscription'
+                        }]
+                    ]
+                }
+            })
+        }
+
 
 
         // check if user is admin

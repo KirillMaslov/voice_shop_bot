@@ -2,9 +2,11 @@ import {
     channelChatId,
     channelLink,
     channelName,
-    creatorNick
+    creatorNick,
+    pegasBotLink
 } from "../config.js";
 import getBotRefferalsCountByTag from "../middlewares/getBotRefferalsCountByTag.js";
+import getRoundBotUserOrNullByChatId from "../middlewares/getRoundBotUserOrNullByChatId.js";
 import getShopBotUserOrNullByChatId from "../middlewares/getShopBotUserOrNullByChatId.js";
 import getShopBotUserRefferalsCount from "../middlewares/getShopBotUserRefferalsCount.js";
 import insertNewShopBotUserInDb from "../services/insertNewShopBotUserInDb.js";
@@ -24,6 +26,7 @@ export default async function handleShopBotStartMessage(db) {
         let resultKeyboard = shopBotMainMenuKeyboardRu;
 
         const chatMembership = await shopBot.getChatMember(channelChatId, chatId);
+        const roundBotMembership = await getRoundBotUserOrNullByChatId(chatId.toString())
 
         if (!foundUserOrNull) {
             if (referral_code) {
@@ -37,11 +40,36 @@ export default async function handleShopBotStartMessage(db) {
                     console.log('found refferal ', foundRefferal);
 
                     if (foundRefferal) {
-                        const refferalsCount = await getShopBotUserRefferalsCount(chatId.toString(), db);
+                        const refferalsCount = await getShopBotUserRefferalsCount(foundRefferal.toString(), db);
+                        try {
+                            await shopBot.sendMessage(refferalChatId, `Пользователь <a href="tg://user?id=${chatId}">${msg.from.first_name}</a> присоединился в бот по вашей реферальной ссылке` + '\n \n' + 
+                                '<b>Спасибо за то что приглашаете друзей</b>', {
+                                parse_mode: "HTML"
+                            })
+                        } catch (e) {
+                            console.log(e);
+                        }
+
                         console.log('refferalsCount', refferalsCount);
                         const newRefferalsNum = Number(refferalsCount.usersNum) + 1;
 
-                        if (newRefferalsNum % 5 === 0) {
+                        if (newRefferalsNum % 5 === 0 ) {
+                            try {
+                                await shopBot.sendMessage(refferalChatId, 'Вы получили 3 голосовых за 5 приведенных новых пользователей. Спасибо что рекомендуете нашего бота друзьям')
+    
+                                const adminsArr = await getShopBotAdminsFromDb(db);
+    
+                                for (const admin of adminsArr) {
+                                    await shopBot.sendMessage(admin.chatId, `<a href='tg://user?id=${refferalChatId}'>Пользователь</a>. Айди: <code>${chatId}</code>` + '\n \n' +
+                                        `Получил 3 голосовых за 5 приведенных рефералов`, {
+                                            parse_mode: "HTML"
+                                        }
+                                    );
+                                }
+                            } catch (e) {
+                                console.log(e);
+                            }
+
                             await db.run('UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?', [Number(foundRefferal.voicesAvaliable) + 3, refferalChatId], function (err) {
                                 if (err) {
                                     return console.error(err.message);
@@ -49,7 +77,7 @@ export default async function handleShopBotStartMessage(db) {
 
                                 console.log('voicesAvaliable is updated');
                             });
-                        } 
+                        }
                     } else {
                         const refferalsCountByTag = await getBotRefferalsCountByTag(refferalChatId, db);
 
@@ -59,7 +87,7 @@ export default async function handleShopBotStartMessage(db) {
                                     if (err) {
                                         return console.error(err.message);
                                     }
-            
+
                                     console.log('language is updated');
                                 });
                             } catch (e) {
@@ -73,7 +101,7 @@ export default async function handleShopBotStartMessage(db) {
                                     )
                                     VALUES(?)
                                 `;
-                    
+
                                 db.run(sql, [refferalChatId], function (err) {
                                     if (err) {
                                         return console.log(err);
@@ -93,20 +121,20 @@ export default async function handleShopBotStartMessage(db) {
         }
 
         if (!foundUserOrNull) {
-            return await shopBot.sendMessage(chatId, 'Please select a language 🇬🇧' + '\n' + 
+            return await shopBot.sendMessage(chatId, 'Please select a language 🇬🇧' + '\n' +
                 'Пожалуйста, выберите язык 🇷🇺', {
-                reply_markup: {
-                    inline_keyboard: [
-                        [{
-                            text: "🇷🇺 Язык",
-                            callback_data: 'changeLanguage_ru'
-                        }, {
-                            text: "🇬🇧 Language",
-                            callback_data: 'changeLanguage_en'
-                        }]
-                    ],
-                }
-            });
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{
+                                text: "🇷🇺 Язык",
+                                callback_data: 'changeLanguage_ru'
+                            }, {
+                                text: "🇬🇧 Language",
+                                callback_data: 'changeLanguage_en'
+                            }]
+                        ],
+                    }
+                });
         }
 
         if (foundUserOrNull && foundUserOrNull.isBlocked) {
@@ -130,7 +158,7 @@ export default async function handleShopBotStartMessage(db) {
             })
         }
 
-        if (chatMembership.status === 'left') {
+        if (chatMembership.status === 'left' || !roundBotMembership) {
             switch (foundUserOrNull.language) {
                 case 'en':
                     messageText = '🍓 <b>You are not subscribed to the channels yet</b>!' + '\n \n' +
@@ -149,6 +177,9 @@ export default async function handleShopBotStartMessage(db) {
                         [{
                             text: channelName,
                             url: channelLink
+                        }, {
+                            text: 'Pegas Bot', 
+                            url: pegasBotLink
                         }],
                         [{
                             text: foundUserOrNull.language === 'en' ? '🔎 Check suscribtion' : "🔎 Проверить подписку",
