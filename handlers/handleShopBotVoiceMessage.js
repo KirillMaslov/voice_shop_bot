@@ -165,6 +165,17 @@ export default async function handleShopBotVoiceMessage(db) {
                     break;
                 }
 
+                case 'Ирина 👩🏻‍💼': {
+                    voiceId = '2PXiyMhp58vnbi8Zt6VZ';
+                    voice_setting = {
+                        stability: 0.32,
+                        similarity_boost: 0.28,
+                        style: 0.2,
+                        use_speaker_boost: true
+                    };
+                    break;
+                }
+
                 case "София 👩🏻": {
                     voiceId = '2PXiyMhp58vnbi8Zt6VZ';
                     voice_setting = {

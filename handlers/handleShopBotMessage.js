@@ -28,7 +28,9 @@ import {
     dmitriyDescriptionRu,
     sophiaDescribtionRu,
     alinaDescribtionRu,
-    pegasBotLink
+    pegasBotLink,
+    vakhoDescriptionRu,
+    uliannaDescribtionRu
 } from "../config.js";
 import shopBot from "../utils/shopBot.js";
 import {
@@ -80,7 +82,7 @@ export default async function handleShopBotMessage(db) {
         let messageText = '';
         let resultKeyboard = shopBotMainMenuKeyboardRu;
 
-        console.log(foundUserOrNull);
+        console.log('foundUserOrNull: ', foundUserOrNull);
 
         if (!foundUserOrNull.language) {
             try {
@@ -126,8 +128,8 @@ export default async function handleShopBotMessage(db) {
 
         const roundBotMembership = await getRoundBotUserOrNullByChatId(chatId.toString())
 
-        console.log('chatMembership: ', chatMembership);
-        console.log('roundBotMembership: ', roundBotMembership);
+        // console.log('chatMembership: ', chatMembership);
+        // console.log('roundBotMembership: ', roundBotMembership);
 
         if (chatMembership.status === 'left' || !roundBotMembership) {
             switch (foundUserOrNull.language) {
@@ -292,6 +294,71 @@ export default async function handleShopBotMessage(db) {
 
                 return messageForAllShopBotUsers.set(chatId.toString(), 'true');
             }
+
+            if (text.startsWith('/giveVoicesToPerson')) {
+                // Extract userId and voices_number from the command
+                const commandParts = text.split(' ');
+            
+                if (commandParts.length !== 3) {
+                    await shopBot.sendMessage(chatId, 'Неправильный формат команды. Используйте: /giveVoicesToPerson userId voices_number');
+                    return;
+                }
+            
+                const userId = commandParts[1];
+                const voicesNumber = parseInt(commandParts[2], 10);
+            
+                // Validate inputs
+                if (isNaN(voicesNumber) || voicesNumber <= 0) {
+                    await shopBot.sendMessage(chatId, 'Количество голосов должно быть положительным числом.');
+                    return;
+                }
+
+                console.log(voicesNumber);
+            
+                // Perform logic to give voices to the user (e.g., update the database)
+                try {
+                    // Find the user in the database
+                    const userQuery = 'SELECT * FROM shop_users WHERE chatId = ?';
+                    const selectedUser = await new Promise((resolve, reject) => {
+                        db.get(userQuery, [userId], (err, row) => {
+                            if (err) {
+                                return reject(err);
+                            }
+                            resolve(row);
+                        });
+                    });
+                
+                    if (!selectedUser) {
+                        await shopBot.sendMessage(chatId, `Пользователь с ID ${userId} не найден.`);
+                        return;
+                    }
+
+                    console.log('selectedUser', selectedUser)
+                
+                    // Update the user's voices
+                    const newVoicesNumber = Number(selectedUser.voicesAvaliable) + voicesNumber;
+
+                    console.log('newVoicesNumber', newVoicesNumber);
+                
+                    const updateQuery = 'UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?';
+                    await new Promise((resolve, reject) => {
+                        db.run(updateQuery, [newVoicesNumber, userId.toString()], function (err) {
+                            if (err) {
+                                return reject(err);
+                            }
+                            console.log('voicesAvaliable is updated');
+                            resolve();
+                        });
+                    });
+                
+                    await shopBot.sendMessage(chatId, `Пользователю с ID ${userId} успешно добавлено ${voicesNumber} голосов.`);
+                
+                } catch (error) {
+                    console.error('Error giving voices to person:', error);
+                    await shopBot.sendMessage(chatId, 'Произошла ошибка при добавлении голосов. Пожалуйста, попробуйте снова позже.');
+                }
+            }
+            
 
             if (text === '/statistic') {
                 const {
@@ -766,6 +833,8 @@ export default async function handleShopBotMessage(db) {
                             }, {
                                 text: "Дмитрий 🏎️",
                             }, {
+                                text: "Вахо 💵",
+                            }], [{
                                 text: '↩️ Назад'
                             }]
                         ];
@@ -817,6 +886,7 @@ export default async function handleShopBotMessage(db) {
                         resultKeyboard = shopBotOwnCabinetMenuRu;
                         break;
                 }
+
                 await shopBot.sendSticker(chatId, "CAACAgIAAxkBAAEucIZnDmYekukDQq1QCkH1_zvJ_-FPvQACSVwAAvuvaEgodF_trkXaUjYE", {
                     reply_markup: {
                         keyboard: resultKeyboard,
@@ -1042,6 +1112,8 @@ export default async function handleShopBotMessage(db) {
                             text: "Лера 👱‍♀️"
                         }, {
                             text: 'Анна 👩🏻‍💼'
+                        }, {
+                            text: 'Юлианна 👩🏻‍💼'
                         }], [{
                             text: "София 👩🏻"
                         }, {
@@ -1071,7 +1143,7 @@ export default async function handleShopBotMessage(db) {
         if (modelListener.has(chatId.toString())) {
             const messageType = modelListener.get(chatId.toString());
 
-            if (!["Лера 👱‍♀️", "София 👩🏻", "Алина🤵🏻‍♀️", 'Дмитрий 🏎️', 'Анна 👩🏻‍💼', 'Меллстрой 🤑', "Lera", 'Ann', 'Andrew'].includes(text)) {
+            if (!["Лера 👱‍♀️", "София 👩🏻", "Алина🤵🏻‍♀️", 'Дмитрий 🏎️', 'Анна 👩🏻‍💼', 'Юлианна 👩🏻‍💼', 'Меллстрой 🤑', "Lera", 'Ann', 'Andrew', "Вахо 💵"].includes(text)) {
                 switch (foundUserOrNull.language) {
                     case 'en': {
                         messageText = `💥 <b>Hey, hero!</b>💥` + '\n' +
@@ -1117,6 +1189,8 @@ export default async function handleShopBotMessage(db) {
                                 text: "Лера 👱‍♀️"
                             }, {
                                 text: 'Анна 👩🏻‍💼'
+                            }, {
+                                text: 'Юлианна 👩🏻‍💼'
                             }], [{
                                 text: "София 👩🏻"
                             }, {
@@ -1191,6 +1265,12 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
+                case "Вахо 💵": {
+                    age = 24;
+                    msgText = vakhoDescriptionRu;
+                    imageFileName = 'malePhoto';
+                }
+
                 case "Лера 👱‍♀️": {
                     age = 18;
                     msgText = leraDescribtionRu;
@@ -1203,6 +1283,14 @@ export default async function handleShopBotMessage(db) {
                     age = 21;
                     msgText = annaDescribtionRu;
                     imageFileName = 'Anna';
+
+                    break;
+                }
+
+                case 'Юлианна 👩🏻‍💼': {
+                    age = 21;
+                    msgText = uliannaDescribtionRu;
+                    imageFileName = 'Ulianna';
 
                     break;
                 }
@@ -1366,6 +1454,20 @@ export default async function handleShopBotMessage(db) {
                     break;
                 }
 
+                case "Вахо 💵": {
+                    speaker = {
+                        voice_id: 'm2gtxNsYBaIRqPBA5vU5',
+                        voice: 'Oleg Krugliak ',
+                        voice_settings: {
+                            stability: 0.7,
+                            similarity_boost: 0.76,
+                            style: 0.32,
+                            use_speaker_boost: true
+                        }
+                    };
+                    break;
+                }
+
                 case 'Lera': {
                     speaker = {
                         voice_id: '2rJo4BNbDooc3q89IWVH',
@@ -1419,6 +1521,21 @@ export default async function handleShopBotMessage(db) {
                             use_speaker_boost: true
                         }
                     };
+                    break;
+                }
+
+                case 'Юлианна 👩🏻‍💼': {
+                    speaker = {
+                        voice_id: '2PXiyMhp58vnbi8Zt6VZ', // Use the correct voice ID (Anna)
+                        voice: 'Sophia T',
+                        voice_settings: {
+                            stability: 0.54,
+                            similarity_boost: 0.48,
+                            style: 0.2,
+                            use_speaker_boost: true
+                        }
+                    };
+
                     break;
                 }
 
