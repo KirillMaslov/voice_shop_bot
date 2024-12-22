@@ -13,7 +13,10 @@ export const creatorNick = 'AID_ex';
 export const pegasBotLink = 'https://t.me/PeggasBot';
 
 export const andreyDescriptionRu = '⚡️ <b>Андрей Бурим (меллстрой)🤑, легендарный стример!!</b> 🎙️🔥';
+
+export const uliannaDescribtionRu = '⚡️ <b>Юлианна 👩🏻‍💼, юная муза с голосом столь нежным, что вдохновляет богов Олимпа!</b> 🎙️🔥';
 export const dmitriyDescriptionRu = '⚡️ <b>Дмитрий🏎️, герой с мужественным голосом, который звучит как эхо Олимпа!</b> 🎙️🔥';
+export const vakhoDescriptionRu = '⚡️ <b>Вахо 🏎️, герой с мужественным голосом, который звучит как эхо Олимпа!</b> 🎙️🔥';
 export const leraDescribtionRu = '⚡️ <b>Лера 👱‍♀️, юная муза с голосом столь нежным, что вдохновляет богов Олимпа! </b>🎙️🌸';
 export const annaDescribtionRu = '⚡️ <b>Анна👩🏻‍💼, нежная муза с голосом, что ласкает слух богов Олимпа!</b> 🎙️🌺';
 export const sophiaDescribtionRu = '⚡️ <b>София👩🏻, юная муза с голосом столь нежным, что вдохновляет богов Олимпа! </b>🎙️🌸';
