@@ -163,6 +163,10 @@ export default async function handleShopBotMessage(db) {
             })
         }
 
+        if (!text) {
+            return 0;
+        }
+
 
 
         // check if user is admin
