@@ -151,7 +151,7 @@ export default async function handleShopBotMessage(db) {
                             text: channelName,
                             url: channelLink
                         }, {
-                            text: 'Pegas Bot', 
+                            text: 'Pegas Bot',
                             url: pegasBotLink
                         }],
                         [{
@@ -302,15 +302,15 @@ export default async function handleShopBotMessage(db) {
             if (text && text.startsWith('/giveVoicesToPerson')) {
                 // Extract userId and voices_number from the command
                 const commandParts = text.split(' ');
-            
+
                 if (commandParts.length !== 3) {
                     await shopBot.sendMessage(chatId, 'Неправильный формат команды. Используйте: /giveVoicesToPerson userId voices_number');
                     return;
                 }
-            
+
                 const userId = commandParts[1];
                 const voicesNumber = parseInt(commandParts[2], 10);
-            
+
                 // Validate inputs
                 if (isNaN(voicesNumber) || voicesNumber <= 0) {
                     await shopBot.sendMessage(chatId, 'Количество голосов должно быть положительным числом.');
@@ -318,7 +318,7 @@ export default async function handleShopBotMessage(db) {
                 }
 
                 console.log(voicesNumber);
-            
+
                 // Perform logic to give voices to the user (e.g., update the database)
                 try {
                     // Find the user in the database
@@ -331,19 +331,19 @@ export default async function handleShopBotMessage(db) {
                             resolve(row);
                         });
                     });
-                
+
                     if (!selectedUser) {
                         await shopBot.sendMessage(chatId, `Пользователь с ID ${userId} не найден.`);
                         return;
                     }
 
                     console.log('selectedUser', selectedUser)
-                
+
                     // Update the user's voices
                     const newVoicesNumber = Number(selectedUser.voicesAvaliable) + voicesNumber;
 
                     console.log('newVoicesNumber', newVoicesNumber);
-                
+
                     const updateQuery = 'UPDATE shop_users SET voicesAvaliable = ? WHERE chatId = ?';
                     await new Promise((resolve, reject) => {
                         db.run(updateQuery, [newVoicesNumber, userId.toString()], function (err) {
@@ -354,15 +354,15 @@ export default async function handleShopBotMessage(db) {
                             resolve();
                         });
                     });
-                
+
                     await shopBot.sendMessage(chatId, `Пользователю с ID ${userId} успешно добавлено ${voicesNumber} голосов.`);
-                
+
                 } catch (error) {
                     console.error('Error giving voices to person:', error);
                     await shopBot.sendMessage(chatId, 'Произошла ошибка при добавлении голосов. Пожалуйста, попробуйте снова позже.');
                 }
             }
-            
+
 
             if (text === '/statistic') {
                 const {
@@ -675,23 +675,57 @@ export default async function handleShopBotMessage(db) {
 
                 console.log(userIds);
 
-                for (const userId of userIds) {
+                // for (const userId of userIds) {
+                //     try {
+                //         await shopBot.copyMessage(userId, chatId, msg.message_id);
+                //         console.log('Сообщение отправленно')
+                //     } catch (error) {
+                //         if (error.response && error.response.body && error.response.body.error_code === 403) {
+                //             console.log(`Пользователь ${userId} заблокировал бота.`);
+
+                //             db.run('DELETE FROM shop_users WHERE chatId = ?', [userId], (err) => {
+                //                 if (err) {
+                //                     throw new Error(`Ошибка при удалении пользователя ${userId}:`, err.message);
+                //                 } else {
+                //                     console.log(`Пользователь ${userId} был удален из базы данных.`);
+                //                 }
+                //             });
+                //         }
+                //     }
+                // }
+
+                let currentIndex = 0;
+
+                const intervalId = setInterval(async () => {
+                    if (currentIndex >= userIds.length) {
+                        console.log("All messages sent.");
+                        clearInterval(intervalId);
+                        return;
+                    }
+
+                    const userId = userIds[currentIndex];
+
                     try {
                         await shopBot.copyMessage(userId, chatId, msg.message_id);
+                        console.log(`Сообщение отправлено пользователю ${userId}`);
                     } catch (error) {
                         if (error.response && error.response.body && error.response.body.error_code === 403) {
                             console.log(`Пользователь ${userId} заблокировал бота.`);
 
                             db.run('DELETE FROM shop_users WHERE chatId = ?', [userId], (err) => {
                                 if (err) {
-                                    throw new Error(`Ошибка при удалении пользователя ${userId}:`, err.message);
+                                    console.error(`Ошибка при удалении пользователя ${userId}:`, err.message);
                                 } else {
                                     console.log(`Пользователь ${userId} был удален из базы данных.`);
                                 }
                             });
+                        } else {
+                            console.error(`Ошибка при отправке сообщения пользователю ${userId}:`, error.message);
                         }
                     }
-                }
+
+                    currentIndex++;
+                }, Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000); // Random interval between 5-10 seconds
 
                 return await shopBot.sendMessage(chatId, 'Вы успешно разослали сообщение всем пользователям' + '\n' + shopBotAdminCommands, {
                     parse_mode: "HTML",
@@ -838,7 +872,8 @@ export default async function handleShopBotMessage(db) {
                                 text: "Дмитрий 🏎️",
                             }, {
                                 text: "Вахо 💵",
-                            }], [{
+                            }],
+                            [{
                                 text: '↩️ Назад'
                             }]
                         ];
@@ -1118,7 +1153,8 @@ export default async function handleShopBotMessage(db) {
                             text: 'Анна 👩🏻‍💼'
                         }, {
                             text: 'Юлианна 👩🏻‍💼'
-                        }], [{
+                        }],
+                        [{
                             text: "София 👩🏻"
                         }, {
                             text: 'Алина🤵🏻‍♀️'
@@ -1195,7 +1231,8 @@ export default async function handleShopBotMessage(db) {
                                 text: 'Анна 👩🏻‍💼'
                             }, {
                                 text: 'Юлианна 👩🏻‍💼'
-                            }], [{
+                            }],
+                            [{
                                 text: "София 👩🏻"
                             }, {
                                 text: 'Алина🤵🏻‍♀️'
