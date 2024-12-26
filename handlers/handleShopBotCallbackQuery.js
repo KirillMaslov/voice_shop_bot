@@ -30,6 +30,10 @@ export default async function handleShopBotCallbackQuery(db) {
         let messageText = '';
         let resultKeyboard = shopBotMainMenuKeyboardRu;
 
+        if (!foundUserOrNull) {
+            return await shopBot.sendMessage('Нажмите /start');
+        }
+
         if (query.data === 'empty') {
             return await shopBot.answerCallbackQuery(queryId);
         }
