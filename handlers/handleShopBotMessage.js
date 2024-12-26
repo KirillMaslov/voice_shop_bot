@@ -299,7 +299,7 @@ export default async function handleShopBotMessage(db) {
                 return messageForAllShopBotUsers.set(chatId.toString(), 'true');
             }
 
-            if (text.startsWith('/giveVoicesToPerson')) {
+            if (text && text.startsWith('/giveVoicesToPerson')) {
                 // Extract userId and voices_number from the command
                 const commandParts = text.split(' ');
             
