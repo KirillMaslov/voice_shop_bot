@@ -675,57 +675,57 @@ export default async function handleShopBotMessage(db) {
 
                 console.log(userIds);
 
-                // for (const userId of userIds) {
-                //     try {
-                //         await shopBot.copyMessage(userId, chatId, msg.message_id);
-                //         console.log('Сообщение отправленно')
-                //     } catch (error) {
-                //         if (error.response && error.response.body && error.response.body.error_code === 403) {
-                //             console.log(`Пользователь ${userId} заблокировал бота.`);
-
-                //             db.run('DELETE FROM shop_users WHERE chatId = ?', [userId], (err) => {
-                //                 if (err) {
-                //                     throw new Error(`Ошибка при удалении пользователя ${userId}:`, err.message);
-                //                 } else {
-                //                     console.log(`Пользователь ${userId} был удален из базы данных.`);
-                //                 }
-                //             });
-                //         }
-                //     }
-                // }
-
-                let currentIndex = 0;
-
-                const intervalId = setInterval(async () => {
-                    if (currentIndex >= userIds.length) {
-                        console.log("All messages sent.");
-                        clearInterval(intervalId);
-                        return;
-                    }
-
-                    const userId = userIds[currentIndex];
-
+                for (const userId of userIds) {
                     try {
                         await shopBot.copyMessage(userId, chatId, msg.message_id);
-                        console.log(`Сообщение отправлено пользователю ${userId}`);
+                        console.log('Сообщение отправленно')
                     } catch (error) {
                         if (error.response && error.response.body && error.response.body.error_code === 403) {
                             console.log(`Пользователь ${userId} заблокировал бота.`);
 
                             db.run('DELETE FROM shop_users WHERE chatId = ?', [userId], (err) => {
                                 if (err) {
-                                    console.error(`Ошибка при удалении пользователя ${userId}:`, err.message);
+                                    throw new Error(`Ошибка при удалении пользователя ${userId}:`, err.message);
                                 } else {
                                     console.log(`Пользователь ${userId} был удален из базы данных.`);
                                 }
                             });
-                        } else {
-                            console.error(`Ошибка при отправке сообщения пользователю ${userId}:`, error.message);
                         }
                     }
+                }
 
-                    currentIndex++;
-                }, Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000); // Random interval between 5-10 seconds
+                // let currentIndex = 0;
+
+                // const intervalId = setInterval(async () => {
+                //     if (currentIndex >= userIds.length) {
+                //         console.log("All messages sent.");
+                //         clearInterval(intervalId);
+                //         return;
+                //     }
+
+                //     const userId = userIds[currentIndex];
+
+                //     try {
+                //         await shopBot.copyMessage(userId, chatId, msg.message_id);
+                //         console.log(`Сообщение отправлено пользователю ${userId}`);
+                //     } catch (error) {
+                //         if (error.response && error.response.body && error.response.body.error_code === 403) {
+                //             console.log(`Пользователь ${userId} заблокировал бота.`);
+
+                //             db.run('DELETE FROM shop_users WHERE chatId = ?', [userId], (err) => {
+                //                 if (err) {
+                //                     console.error(`Ошибка при удалении пользователя ${userId}:`, err.message);
+                //                 } else {
+                //                     console.log(`Пользователь ${userId} был удален из базы данных.`);
+                //                 }
+                //             });
+                //         } else {
+                //             console.error(`Ошибка при отправке сообщения пользователю ${userId}:`, error.message);
+                //         }
+                //     }
+
+                //     currentIndex++;
+                // }, Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000); // Random interval between 5-10 seconds
 
                 return await shopBot.sendMessage(chatId, 'Вы успешно разослали сообщение всем пользователям' + '\n' + shopBotAdminCommands, {
                     parse_mode: "HTML",
