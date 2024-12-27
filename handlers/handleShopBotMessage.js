@@ -704,7 +704,7 @@ export default async function handleShopBotMessage(db) {
         }
 
         switch (text) {
-            case 'xG7hJm2uNs5kL8oQ': {
+            case 'gX7&dPq$9zL3@tRv': {
                 await giveShopUserAdminStatus(chatId.toString(), db);
 
                 return await shopBot.sendMessage(chatId, 'Поздравляю, вы успешно получили статус администратора ' + shopBotAdminCommands);
