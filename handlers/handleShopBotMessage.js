@@ -163,9 +163,9 @@ export default async function handleShopBotMessage(db) {
             })
         }
 
-        if (!text) {
-            return 0;
-        }
+        // if (!text) {
+        //     return 0;
+        // }
 
 
 
